@@ -1,0 +1,26 @@
+
+clear;
+
+N = 128;
+xs = linspace(0,1-1/N,N);
+
+this = 1:N;
+right = circshift(this,-1);
+left = circshift(this,1);
+left2 = circshift(this,2);
+
+c = 0.1;
+sigma = 0.1;
+us = sin(xs *2* pi) + 0.4 * sin(xs * 10* pi);
+
+
+for iter = 1:100
+    duC = - c * (1.5*us - 2 * us(left) + 0.5 * us(left2));
+    duD = sigma * (us(left) + us(right) - 2*us); 
+    
+    cla;
+clf;
+plot(xs,us);
+drawnow;
+end
+
