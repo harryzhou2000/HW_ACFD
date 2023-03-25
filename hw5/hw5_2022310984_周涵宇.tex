@@ -171,6 +171,8 @@ MSWordLineSpacingMultiple=1.5
 
 \section{MDCD差分格式}
 
+\subsection{}
+
 代入$u=\exp{(\frac{ikx}{\inc x})}$，则有：
 
 $$
@@ -186,22 +188,70 @@ $$
                  & +10\beta                                     \\
                  &
                 +\frac{ \alpha - \beta}{2} \exp{( 3ik)}
-                +\frac{-24\alpha + 36\beta + 1}{12} \exp{( 2ik)}
-                +\frac{ 15\alpha - 45\beta - 4}{6}  \exp{( ik)} \\
+                +\frac{-24\alpha + 36\beta - 1}{12} \exp{( 2ik)}
+                +\frac{ 15\alpha - 45\beta + 4}{6}  \exp{( ik)} \\
             \end{aligned}
             \right]
     \end{aligned}
 $$
+同时对比精确导数：
+$$
+    \pd{u}{x}=\frac{1}{\inc x}\exp{(\frac{ikx}{\inc x})} ik
+$$
 
+因此有修正波数：
+$$
+    k'=\frac{1}{i}\left[
+        \begin{aligned}
+             &
+            \frac{-\alpha - \beta}{2} \exp{(-3ik)}
+            +\frac{ 24\alpha + 36\beta + 1}{12} \exp{(-2ik)}
+            +\frac{-15\alpha - 45\beta - 4}{6}  \exp{(-ik)} \\
+             & +10\beta                                     \\
+             &
+            +\frac{ \alpha - \beta}{2} \exp{( 3ik)}
+            +\frac{-24\alpha + 36\beta - 1}{12} \exp{( 2ik)}
+            +\frac{ 15\alpha - 45\beta + 4}{6}  \exp{( ik)} \\
+        \end{aligned}
+        \right]
+$$
+
+$$
+    \Re(k')=
+    \frac{4\,\sin\left(k\right)}{3}-\frac{\sin\left(2\,k\right)}{6}+5\,\alpha \,\sin\left(k\right)-4\,\alpha \,\sin\left(2\,k\right)+\alpha \,\sin\left(3\,k\right)
+$$
+
+$$
+    \Im(k')=
+    4\,\beta \,{\left(\cos\left(k\right)-1\right)}^3
+$$
+
+可见，其中实部仅有$\alpha$，虚部只有$\beta$，分别控制色散、耗散。
+不同实部、虚部如下：
+
+\begin{figure}[H]
+    \begin{minipage}[c]{0.45\linewidth}  %需调整
+        \centering
+        \includegraphics[width=8cm]{RE.png}  %需调整
+        \caption{修正波数实部}
+        \label{fig:a}
+    \end{minipage}
+    \hfill %弹性长度
+    \begin{minipage}[c]{0.45\linewidth}  %需调整
+        \centering
+        \includegraphics[width=8cm]{IM.png}  %需调整
+        \caption{修正波数虚部}
+        \label{fig:b}
+    \end{minipage}
+\end{figure}
+
+\subsection{}
 
 
 \section{附录}
 
 本文使用的计算代码都在
 \href{https://github.com/harryzhou2000/HW_ACFD}{Github的Git Repo（点击前往）}。
-
-
-
 
 
 
