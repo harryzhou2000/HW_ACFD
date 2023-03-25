@@ -6,7 +6,7 @@
 
 
 
-\title{{\bfseries\rmfamily\Huge{高等计算流体力学\hspace{1em}\\第4次作业}}}
+\title{{\bfseries\rmfamily\Huge{高等计算流体力学\hspace{1em}\\第5次作业}}}
 \author{周涵宇 2022310984}
 \date{}
 
@@ -143,270 +143,63 @@ MSWordLineSpacingMultiple=1.5
 
 \section{动网格微分方程}
 
-\newcommand*{\xxii}[0]{\symbf{\xi}}
-\newcommand*{\xx}[0]{\symbf{x}}
-\newcommand*{\U}[0]{\symbf{U}}
-\newcommand*{\F}[0]{\symbf{F}}
-\newcommand*{\vg}[0]{\symbf{v}_g}
+根据题设条件，在周期边界下对1D线性对流方程进行计算，初值为间断，不同时刻的结果如下：
 
-本文中采用张量实体的时候，点或者不写明都是点积，$\otimes$是并矢，$\bm{T}$上标
-是二阶张量的转置。
-
-根据变换$(\xx,t)\leftrightarrow(\xxii,\tau)$，其中：
-$$
-    \pd{(\xx,t)}{(\xxii,\tau)}=\begin{bmatrix}
-        \bm{J} & \vg \\
-        0      & 1   \\
-    \end{bmatrix}
-$$
-因此其逆为
-$$
-    \pd{(\xxii,\tau)}{(\xx,t)}=\begin{bmatrix}
-        \bm{J}^{-1} & -\bm{J}^{-1}\vg \\
-        0           & 1               \\
-    \end{bmatrix}
-$$
-可得守恒律：
-$$
-    \pd{\bm{U}}{t}+\F\cdot\nb_{\xx}=0
-$$
-可以变换为（准守恒形式）：
-
-\begin{equation}
-    \pd{\bm{U}}{\tau}+\F\cdot\nb_{\xxii}\bm{J^{-1}}=0
-    \label{eq:p_conser}
-\end{equation}
-
-
-记Jacobian的行列式为$|\bm{J}|=J$，则有导数关系：$\pd{J}{\bm{J}}=J\bm{J^{-T}}$，
-因此有（几何守恒关系）：
-
-\begin{equation}
-    \nb_{\xxii}\cdot(J\bm{J^{-1}})=0,\ \
-    \nb_{\xxii}\cdot(J\bm{J^{-1}}\vg)-\pd{J}{\tau}=0
-    \label{eq:geom_conser}
-\end{equation}
-
-这样，方程两边同时乘$J$容易得到：
-\begin{equation}
-    \pd{J\U}{\tau}+
-    [J\F\bm{J^{-T}} - \bm{U}\otimes(J\bm{J^{-1}}\vg)]\cdot\nb_{\xxii}
-    \label{eq:conser}
-\end{equation}
-
-
-这就是运动曲线坐标的守恒型方程。注意本文的$J$是$L^3$量纲（假如参数坐标无量纲），
-与论文中通常的记号是相反的。
-
-考虑分量：
-$$
-    \bm{J^{-1}}\equiv\begin{bmatrix}
-        \pd{\xi}{x}   & \pd{\xi}{y}   & \pd{\xi}{z}   \\
-        \pd{\eta}{x}  & \pd{\eta}{y}  & \pd{\eta}{z}  \\
-        \pd{\zeta}{x} & \pd{\zeta}{y} & \pd{\zeta}{z} \\
-    \end{bmatrix}, \ \
-    \bm{J^{-1}}\vg\equiv \begin{bmatrix}
-        \pd{\xi}{t}   \\
-        \pd{\eta}{t}  \\
-        \pd{\zeta}{t} \\
-    \end{bmatrix}
-$$
-记：
-$$
-    J\bm{J^{-1}}\equiv\begin{bmatrix}
-        J\pd{\xi}{x}   & J\pd{\xi}{y}   & J\pd{\xi}{z}   \\
-        J\pd{\eta}{x}  & J\pd{\eta}{y}  & J\pd{\eta}{z}  \\
-        J\pd{\zeta}{x} & J\pd{\zeta}{y} & J\pd{\zeta}{z} \\
-    \end{bmatrix}
-    =
-    \begin{bmatrix}
-        \hat{\xi}_x   & \hat{\xi}_y   & \hat{\xi}_z   \\
-        \hat{\eta}_x  & \hat{\eta}_y  & \hat{\eta}_z  \\
-        \hat{\zeta}_x & \hat{\zeta}_y & \hat{\zeta}_z \\
-    \end{bmatrix},\ \
-    J\bm{J^{-1}}\vg\equiv \begin{bmatrix}
-        J\pd{\xi}{t}   \\
-        J\pd{\eta}{t}  \\
-        J\pd{\zeta}{t} \\
-    \end{bmatrix}=
-    \begin{bmatrix}
-        \hat{\xi}_t   \\
-        \hat{\eta}_t  \\
-        \hat{\zeta}_t \\
-    \end{bmatrix}
-$$
-
-以无粘通量为例：
-$$
-    \F
-    =
-    \begin{bmatrix}
-        \rho u        & \rho v        & \rho w        \\
-        \rho uu + p   & \rho uv       & \rho uw       \\
-        \rho vu       & \rho vv + p   & \rho vw       \\
-        \rho wu       & \rho wv       & \rho ww + p   \\
-        (\rho E + p)u & (\rho E + p)v & (\rho E + p)w \\
-    \end{bmatrix}
-$$
-
-则可以化简为
-$$
-    J\F\bm{J^{-T}} - \bm{U}\otimes(J\bm{J^{-1}}\vg) = \hat{\F}
-$$
-
-其中曲线坐标的无粘通量为：
-
-\begin{equation}
-    \hat{\F}
-    =
-    \begin{bmatrix}
-        \rho \hat{U}                        & \rho \hat{V}                         & \rho \hat{W}                          \\
-        \rho u\hat{U} + \hat{\xi}_x p       & \rho u\hat{V} + \hat{\eta}_x p       & \rho u\hat{W} + \hat{\zeta}_x p       \\
-        \rho v\hat{U} + \hat{\xi}_y p       & \rho v\hat{V} + \hat{\eta}_y p       & \rho v\hat{W} + \hat{\zeta}_y p       \\
-        \rho w\hat{U} + \hat{\xi}_z p       & \rho w\hat{V} + \hat{\eta}_z p       & \rho w\hat{W} + \hat{\zeta}_z p       \\
-        (\rho E + p)\hat{U} - \hat{\xi}_t p & (\rho E + p)\hat{V} - \hat{\eta}_t p & (\rho E + p)\hat{W} - \hat{\zeta}_t p \\
-    \end{bmatrix}
-    \label{eq:Fhat_inv}
-\end{equation}
-
-里面有曲线坐标对流速度：
-$$
-    \begin{aligned}
-        \hat{U} = \hat{\xi}_t + \hat{\xi}_x u + \hat{\xi}_y v + \hat{\xi}_z w         \\
-        \hat{V} = \hat{\eta}_t + \hat{\eta}_x u + \hat{\eta}_y v + \hat{\eta}_z w     \\
-        \hat{W} = \hat{\zeta}_t + \hat{\zeta}_x u + \hat{\zeta}_y v + \hat{\zeta}_z w \\
-    \end{aligned}
-$$
-守恒量中能量方程取$E$的方程。
-
-这时，守恒型方程可以简写为：
-$$
-    \pd{J\U}{\tau}+
-    \hat{\F}\cdot\nb_{\xxii}=0
-$$
-
-粘性通量可以进一步推导，但是基本关系满足\eqref{eq:conser}的结论。
-根据\eqref{eq:Fhat_inv}的形式，取守恒量为均匀场，
-通量偏导数为0的条件就是\eqref{eq:geom_conser}的几何守恒关系。
-因此，在动曲线网格中若想满足均匀流保持条件，需要数值上满足\eqref{eq:geom_conser}。
-
-\section{守恒差分}
-
-在静止网格中，根据上一题，代入均匀场，对比方程\eqref{eq:p_conser}与\eqref{eq:conser}，可发现
-若采用守恒方程进行离散，则若要求时间导数是0，必须满足几何关系\eqref{eq:geom_conser}的第一部分（因为静止），
-分量形式为：
-
-\begin{equation}
-    \begin{aligned}
-        (\hat{\xi_x})\xi + (\hat{\eta_x})\eta + (\hat{\zeta_x })\zeta & = 0 \\
-        (\hat{\xi_y})\xi + (\hat{\eta_y})\eta + (\hat{\zeta_y })\zeta & = 0 \\
-        (\hat{\xi_z})\xi + (\hat{\eta_z})\eta + (\hat{\zeta_z })\zeta & = 0 \\
-    \end{aligned}
-    \label{eq:gc1}
-\end{equation}
-
-以上关系对于任何微分变换是精确成立的。
-
-数值上，以上的最外层求导是参数坐标下的实际差分格式，
-而内层的导数是通过$\bm{J}$的计算出来的，同时$\bm{J}$一般也是差分给出（也有可能是解析的），
-其中的误差就可以导致以上关系不成立，因此有可能违反均匀流保持的条件。
-
-以三维为例，直接计算时，
-三维Jacobian矩阵的逆可以直接给出公式，因此展开后，\eqref{eq:gc1}，
-中第一个方程的实际计算过程是：
-\begin{equation}
-    (y_\eta z_\zeta)_\xi -
-    (y_\zeta z_\eta)_\xi
-    +
-    (y_\zeta z_\xi)_\eta -
-    (y_\xi z_\zeta)_\eta
-    +
-    (y_\xi z_\eta)_\zeta -
-    (y_\eta z_\xi)_\zeta = 0
-\end{equation}
-以上括号内部的导数都是计算Metric的时候的差分格式，外部的导数是物理量的差分格式，
-一般来说这是无法数值上保障为零的。
-
-根据文献(R.Hixon, 2000)，假设采用的外部差分格式具有交换性，即括号外部的混合偏导可以
-交换次序，同时所有的偏导数，包括物理量的导数，都用这个差分格式计算：
-
-\begin{equation}
-    \begin{aligned}
-        \hat{\xi}_x   & = (y_\eta z)_\zeta - (y_\zeta z)_\eta \\
-        \hat{\xi}_y   & = (x_\zeta z)_\eta - (x_\eta z)_\zeta \\
-        \hat{\xi}_z   & = (x_\eta y)_\zeta - (x_\zeta y)_\eta \\
-        \hat{\eta}_x  & = (y_\zeta z)_\xi - (y_\xi z)_\zeta   \\
-        \hat{\eta}_y  & = (x_\xi z)_\zeta - (x_\zeta z)_\xi   \\
-        \hat{\eta}_z  & = (x_\zeta y)_\xi - (x_\xi y)_\zeta   \\
-        \hat{\zeta}_x & = (y_\xi z)_\eta - (y_\eta z)_\xi     \\
-        \hat{\zeta}_y & = (x_\eta z)_\xi - (x_\xi z)_\eta     \\
-        \hat{\zeta}_z & = (x_\xi y)_\eta - (x_\eta y)_\xi     \\
-    \end{aligned}
-\end{equation}
-上式中至少外部的偏导数是用和物理量相同的差分格式进行的。这个式子和
-直接离散的过程数值上不等价，但是解析上是等价的。
-那么第一个守恒律变成：
-\begin{equation}
-    (y_\eta z)_{\zeta\xi} -
-    (y_\zeta z)_{\eta\xi}
-    +
-    (y_\zeta z)_{\xi\eta} -
-    (y_\xi z)_{\zeta\eta}
-    +
-    (y_\xi z)_{\eta\zeta} -
-    (y_\eta z)_{\xi\zeta} = 0
-\end{equation}
-括号外都是可交换的差分格式，因此其数值上可以保障为0。
-
-当然，对于WENO等非线性差分格式，具体的导数计算还需要进一步讨论；
-假如在网格上进行有限体积离散，则需要考虑半网格点上的导数计算和通量的等效性。
-
-\section{差分离散稳定性}
-
-这是对于一维线性对流扩散方程的离散，可看作对流项迎风二阶差分，扩散项中心格式外加显式欧拉时间推进。
-设无限大计算域，则代入周期解：
-$$
-    u^n=\exp{(ikx)}
-$$
-则有：
-$$
-    \frac{u^{n+1} - \exp{(ikx)}}{\inc t}
-    =-a \frac{3 - 4 \exp{(-ik\inc x)} + \exp{(-2ik\inc x)}}{2\inc x}\exp{(ikx)}
-    +\nu \frac{\exp{(-ik\inc x)}-2+\exp{(ik\inc x)}}{\inc x^2}\exp{(ikx)}
-$$
-设$c=\frac{a\inc t}{\inc x},\sigma = \frac{\nu\inc t}{\inc x^2}, u^{n+1}=K\exp{(ikx)} $
-则化为：
-$$
-    K
-    =1-c\left(
-    \frac{3}{2} - 2\exp(-ik\inc x) + \frac{1}{2}\exp(-2ik\inc x)
-    \right)
-    +\sigma\left(
-    \exp(ik\inc x)+\exp(-ik\inc x)-2
-    \right)
-$$
-记$k\inc x = \kappa $，则：
-$$
-    \Re(K) = 1+\left(2\,\cos\left(\kappa \right)-\frac{\cos\left(2\,\kappa \right)}{2}-\frac{3}{2}\right)\,c+\left(2\,\cos\left(\kappa \right)-2\right)\,\sigma
-$$
-$$
-    \Im(K) = c\,\left(\frac{\sin\left(2\,\kappa \right)}{2}-2\,\sin\left(\kappa \right)\right)
-$$
-假如$c=0$，使得对于所有$\kappa$，$|K|<1$的条件是$\sigma < \frac{1}{2}$。
-假如$\sigma = 0$， 对于所有$\kappa$，$|K|<1$是不可能存在的（总有很小的增长）。
-
-为了直观分析其稳定性，给出数值结果，对于$c,\sigma$数值采样进行计算，
-在$[0,1]\times[0,1]$考察$|K|$的大小，结果为：
 \begin{figure}[H]
     \centering
-    \includegraphics[width=8cm]{StableA.png}  %需调整
-    \caption{$|K|$的大小区域，黑色区域为小于1}
-    \label{fig:a}
+    \includegraphics[width=8cm]{T01.png}  %需调整
+    \caption{时刻0.1的解}
 \end{figure}
 
-图中可见，在区域$\frac{c^2}{2}<\sigma<\frac{1}{2}-c$的区域为稳定的。
-对于最小的$\sigma$，可见其正好与Warming-Beam格式的人工粘性部分大小类似（但是Warming-Beam是迎风的人工粘性离散）。
-在强对流问题中，本格式稳定要求为$0\leq c\leq\sqrt{2}-1$。
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=8cm]{T1.png}  %需调整
+    \caption{时刻1的解}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=8cm]{T10.png}  %需调整
+    \caption{时刻10的解}
+\end{figure}
+
+首先的观察是，一阶迎风中间断都随着计算被抹平，这是因为线性对流方程中的间断并没有非线性效应输入能量维持，
+数值格式的耗散将其抹平。
+
+其次，一阶迎风格式保持了单调性，两个二阶格式都失去了单调性。LW格式中间断后方出现了振荡，WB正好相反。
+这意味着分别有负和正的色散。
+
+\section{MDCD差分格式}
+
+代入$u=\exp{(\frac{ikx}{\inc x})}$，则有：
+
+$$
+    \begin{aligned}
+        \pd{u}{x}\approx
+        \frac{1}{\inc x}\exp{(\frac{ikx}{\inc x})}
+        \left[
+            \begin{aligned}
+                 &
+                \frac{-\alpha - \beta}{2} \exp{(-3ik)}
+                +\frac{ 24\alpha + 36\beta + 1}{12} \exp{(-2ik)}
+                +\frac{-15\alpha - 45\beta - 4}{6}  \exp{(-ik)} \\
+                 & +10\beta                                     \\
+                 &
+                +\frac{ \alpha - \beta}{2} \exp{( 3ik)}
+                +\frac{-24\alpha + 36\beta + 1}{12} \exp{( 2ik)}
+                +\frac{ 15\alpha - 45\beta - 4}{6}  \exp{( ik)} \\
+            \end{aligned}
+            \right]
+    \end{aligned}
+$$
+
+
+
+\section{附录}
+
+本文使用的计算代码都在
+\href{https://github.com/harryzhou2000/HW_ACFD}{Github的Git Repo（点击前往）}。
+
 
 
 
