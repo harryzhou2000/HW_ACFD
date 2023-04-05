@@ -1,16 +1,19 @@
 
 see = 50;
-sup = 4;
+sup = 16;
 Nx = 10 * sup;
 Ny = 10 * sup;
 C = 0.1;
 Tmax = 2;
 G.p = 2;
-G.eps = 1e200; 
+G.eps = 1e-6; 
+G.mapping = 1;
 % eps 10* 2 4 8 16 32 
 % 1e-6    3.1230530e-01 5.2543401e-02 4.4590657e-03 2.5012196e-04 1.1233154e-05 3.7072570e-07
 % 1e-3    2.9349690e-01 3.2229027e-02 2.4662220e-03 8.1062336e-05 1.9013022e-06 4.4152115e-08
-% 1e200   1.2498203e-02 6.0787613e-04 6.0787613e-04 2.0860055e-05 6.6494326e-07 2.0892949e-08
+% 1e200   9.5435399e-02 1.2498203e-02 6.0787613e-04 2.0860055e-05 6.6494326e-07 2.0892949e-08
+% 1e-6m   2.2693522e-01 2.9438651e-02 9.2472577e-04 2.2989118e-05 6.6682832e-07 2.0893558e-08
+% 1e-6Roe 
 
 nv = 4;
 
@@ -142,8 +145,8 @@ function dudt = frhs(u, G, M)
 p = G.p;
 eps = G.eps;
     
-    [uLe, uRi] = F_interpi_weno5(u, eps, p);
-    [uLo, uUp] = F_interpi_weno5(permute(u,[2,1,3]), eps, p);
+    [uLe, uRi] = F_interpi_weno5(u, eps, p, G.mapping);
+    [uLo, uUp] = F_interpi_weno5(permute(u,[2,1,3]), eps, p, G.mapping);
     uLo = permute(uLo, [2,1,3]);
     uUp = permute(uUp, [2,1,3]);
     
@@ -167,7 +170,7 @@ eps = G.eps;
 %     fRi_f = RSx(fRi_uLe, fRi_uRi, M.gamma);
 %     fLo_f = RSy(fLo_uLo, fLo_uUp, M.gamma);
 %     fUp_f = RSy(fUp_uLo, fUp_uUp, M.gamma);
-    
+%     dudt = (fLe_f - fRi_f) / G.hx + (fLo_f - fUp_f) / G.hy;
     
     
     [fx, lam1, lam2, lam3] = invfluxX(u, M.gamma);
@@ -180,8 +183,8 @@ eps = G.eps;
     lammaxLo = max(lammax, lammax(:,G.jlo));
     lammaxUp = max(lammax, lammax(:,G.jup));
     
-    [fxLe,fxRi] = F_interpi_weno5(fx, eps, p);
-    [fyLo,fyUp] = F_interpi_weno5(permute(fy,[2,1,3]), eps, p);
+    [fxLe,fxRi] = F_interpi_weno5(fx, eps, p, G.mapping);
+    [fyLo,fyUp] = F_interpi_weno5(permute(fy,[2,1,3]), eps, p, G.mapping);
     fyLo = permute(fyLo, [2,1,3]);
     fyUp = permute(fyUp, [2,1,3]);
     

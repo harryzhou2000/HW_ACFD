@@ -5,4 +5,7 @@
 *.gz
 *.aux
 *.asv
+*.blg
+*.bbl
+*.mat
 

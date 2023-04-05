@@ -1,4 +1,7 @@
-function [fL, fR] = F_interpi_weno5(f, eps, p)
+function [fL, fR] = F_interpi_weno5(f, eps, p, mapping)
+if nargin < 4
+    mapping = 0;
+end
 
 
 
@@ -58,7 +61,33 @@ omegaL0 = alphaL0 ./ alphaSL;
 omegaL1 = alphaL1 ./ alphaSL;
 omegaL2 = alphaL2 ./ alphaSL;
 
+if(eps<100 && mapping)
+    alphaR0 = Henrick_mapping(omegaR0, 1/10);
+    alphaR1 = Henrick_mapping(omegaR1, 6/10);
+    alphaR2 = Henrick_mapping(omegaR2, 3/10);
+    alphaL0 = Henrick_mapping(omegaL0, 1/10);
+    alphaL1 = Henrick_mapping(omegaL1, 6/10);
+    alphaL2 = Henrick_mapping(omegaL2, 3/10);
+    
+    alphaSR = alphaR0 + alphaR1 + alphaR2;
+    alphaSL = alphaL0 + alphaL1 + alphaL2;
+    
+    omegaR0 = alphaR0 ./ alphaSR;
+    omegaR1 = alphaR1 ./ alphaSR;
+    omegaR2 = alphaR2 ./ alphaSR;
+    omegaL0 = alphaL0 ./ alphaSL;
+    omegaL1 = alphaL1 ./ alphaSL;
+    omegaL2 = alphaL2 ./ alphaSL;
+    
+end
+
 fR = omegaR0 .* fR0 + omegaR1 .* fR1 + omegaR2 .*fR2;
 fL = omegaL0 .* fL0 + omegaL1 .* fL1 + omegaL2 .*fL2;
+
+function am = Henrick_mapping(w,wi)
+    am = w.*(wi + wi^2 - 3*wi*w+w.^2)./(wi^2 +w * (1-2*wi));
+end
+
+end
 
 

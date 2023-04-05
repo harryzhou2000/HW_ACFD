@@ -1,9 +1,9 @@
 
 see = 10;
-Nx = 512;
-Ny = 512;
+Nx = 64;
+Ny = 64;
 
-
+eps = 1e-6;
 nv = 2;
 
 xs = linspace(0,1-1/Nx,Nx);
@@ -18,8 +18,8 @@ ay = 1;
 
 us = zeros(Nx,Ny,nv);
 
-% us(:,:,1) = (xm - 0.5).^2 + (ym - 0.5).^2 < 0.25^2;
-us(:,:,1) = cos(xm * 2 *pi) .* cos(ym * 2*pi);
+us(:,:,1) = (xm - 0.5).^2 + (ym - 0.5).^2 < 0.25^2;
+% us(:,:,1) = cos(xm * 2 *pi) .* cos(ym * 2*pi);
 
 G.xm = xm;
 G.ym = ym;
@@ -31,6 +31,7 @@ G.ile = circshift(G.ithis,  1);
 G.jthis = 1:Ny;
 G.jup = circshift(G.jthis, -1);
 G.jlo = circshift(G.jthis,  1);
+G.eps = eps;
 M.ax = ax;
 M.ay = ay;
 
@@ -62,11 +63,16 @@ end
 err0 = norm(u(:) - us(:), 1) * G.hx * G.hy;
 fprintf("err0 = %.7e\n", err0);
 
+colorbar;
+xlabel('x');
+ylabel('y');
+title(sprintf("WENO5 \\epsilon = %.e",eps));
+
 
 function dudt = frhs(u, G, M)
     
-    [uLe, uRi] = F_interpi_weno5(u, 1e-6, 1);
-    [uLo, uUp] = F_interpi_weno5(permute(u,[2,1,3]), 1e-6, 1);
+    [uLe, uRi] = F_interpi_weno5(u, G.eps, 2, 0);
+    [uLo, uUp] = F_interpi_weno5(permute(u,[2,1,3]), G.eps, 2, 0);
     uLo = permute(uLo, [2,1,3]);
     uUp = permute(uUp, [2,1,3]);
     
@@ -86,10 +92,6 @@ function dudt = frhs(u, G, M)
     fUp_f = RS(fUp_uLo, fUp_uUp, M.ay);
     
     dudt = (fLe_f - fRi_f) / G.hx + (fLo_f - fUp_f) / G.hy;
-    
-    
- 
-
 
 end
 
