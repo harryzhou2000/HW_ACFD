@@ -1,0 +1,616 @@
+%!TEX program = xelatex
+\documentclass[UTF8,zihao=5]{ctexart} %ctex包的article
+
+
+\usepackage[hidelinks]{hyperref}%超链接，自动加到目录里面
+
+
+
+\title{{\bfseries\rmfamily\Huge{高等计算流体力学\hspace{1em}\\第7次作业}}}
+\author{周涵宇 2022310984}
+\date{}
+
+\usepackage[a4paper]{geometry}
+\geometry{left=0.75in,right=0.75in,top=1in,bottom=1in}%纸张大小和页边距
+
+\usepackage[
+UseMSWordMultipleLineSpacing,
+MSWordLineSpacingMultiple=1.5
+]{zhlineskip}%office风格的行间距
+
+\usepackage{fontspec}
+\setmainfont{Times New Roman}
+\setsansfont{Source Sans Pro}
+\setmonofont{Latin Modern Mono}
+\setCJKmainfont{SimSun}[AutoFakeBold=true]
+% \setCJKmainfont{仿宋}[AutoFakeBold=true]
+\setCJKsansfont{黑体}[AutoFakeBold=true]
+\setCJKmonofont{DengXian}[AutoFakeBold=true]
+
+\setCJKfamilyfont{kaiti}{楷体}
+\newfontfamily\CM{Cambria Math}
+
+
+% \usepackage{indentfirst} %不工作 怎样调整ctex的段首缩进大小呢
+
+\usepackage{fancyhdr}
+\pagestyle{fancy}
+\lhead{}
+\chead{}
+\rhead{}
+\lfoot{}
+\cfoot{\thepage}
+\rfoot{}
+\renewcommand{\headrulewidth}{1pt} %改为0pt即可去掉页眉下面的横线
+\renewcommand{\footrulewidth}{1pt} %改为0pt即可去掉页脚上面的横线
+\setcounter{page}{1}
+
+
+% \usepackage{bm}
+
+\usepackage{amsmath,amsfonts}
+\usepackage{array}
+\usepackage{enumitem}
+\usepackage{unicode-math}
+
+% \usepackage{titlesec} % it subverts the ctex titles
+\usepackage{titletoc}
+
+
+% titles in toc:
+\titlecontents{section}
+              [2cm]
+              {\sffamily\zihao{5}\mdseries}%
+              {\contentslabel{3em}}%
+              {}%
+              {\titlerule*[0.5pc]{-}\contentspage\hspace*{1cm}}
+
+\titlecontents{subsection}
+              [3cm]
+              {\rmfamily\mdseries\zihao{5}}%
+              {\contentslabel{3em}}%
+              {}%
+              {\titlerule*[0.5pc]{-}\contentspage\hspace*{1cm}}
+
+\titlecontents{subsubsection}
+              [4cm]
+              {\rmfamily\mdseries\zihao{5}}%
+              {\contentslabel{3em}}%
+              {}%
+              {\titlerule*[0.5pc]{-}\contentspage\hspace*{1cm}}
+\renewcommand*\contentsname{\hfill \sffamily\mdseries 目录 \hfill}
+
+\ctexset{
+    section={   
+        % name={前面,后面},
+        number={\arabic{section}.},
+        format=\sffamily\raggedright\zihao{4}\mdseries,
+        indent= {0em},
+        aftername = \hspace{0.5em},
+        beforeskip=1ex,
+        afterskip=1ex
+    },
+    subsection={   
+        % name={另一个前面,另一个后面},
+        number={\arabic{section}.\arabic{subsection}.}, %如果只用一个数字而非1.1
+        format=\rmfamily\raggedright\mdseries\zihao{5},%正体字体，不加粗，main字体，五号字
+        indent = {2em}, %缩进
+        aftername = \hspace{0.5em},
+        beforeskip=1ex,
+        afterskip=1ex
+    },
+    subsubsection={   
+        % name={另一个前面,另一个后面},
+        number={\arabic{section}.\arabic{subsection}.\arabic{subsubsection}.}, %默认的 1.1.1
+        format=\rmfamily\raggedright\mdseries\zihao{5},%无衬线字体，加粗，sans字体，五号字
+        indent = {2em}, %缩进
+        aftername = \hspace{0.5em},  %名字和标题间插入字符（此处是空白）
+        beforeskip=1ex, %空行
+        afterskip=1ex
+    }
+}
+
+\usepackage{float}
+\usepackage{graphicx}
+\usepackage{multirow}
+\usepackage{multicol}
+\usepackage{caption}
+\usepackage{subcaption}
+\usepackage{cite}
+
+
+%part、section、subsection、subsubsection、paragraph、subparagraph
+\newcommand{\bm}[1]{{\mathbf{#1}}}
+\newcommand{\trans}[0]{^\mathrm{T}}
+\newcommand{\tran}[1]{#1^\mathrm{T}}
+\newcommand{\hermi}[0]{^\mathrm{H}}
+\newcommand{\conj}[1]{\overline{#1}}
+\newcommand*{\av}[1]{\left\langle{#1}\right\rangle}
+\newcommand*{\avld}[1]{\frac{\overline{D}#1}{Dt}}
+\newcommand*{\pd}[2]{\frac{\partial #1}{\partial #2}}
+\newcommand*{\pdcd}[3]{\frac{\partial^2 #1}{\partial #2 \partial #3}}
+\newcommand*{\inc}[0]{{\Delta}}
+
+\newcommand*{\uu}[0]{\bm{u}}
+\newcommand*{\vv}[0]{\bm{v}}
+\newcommand*{\g}[0]{\bm{g}}
+\newcommand*{\nb}[0]{{\nabla}}
+
+
+
+\begin{document}
+
+\maketitle
+
+\section{精确1D黎曼问题}
+
+根据Toro的书\cite{2013Riemann}有关章节，
+先求解中间压力$p_m$，给出$V_m$，
+再求解$\rho_{mL},\rho_{mR}$，此时可以判断
+问题类型，接下来给出解析解。问题1-5为：
+
+\begin{table}[H]
+    % \tiny
+    \begin{center}
+        \caption{黎曼问题设置}
+        \begin{tabular}{|c|c|c|c|c|c|c|}
+            \hline
+            问题 & $\rho_L$ & $V_L$     & $p_L$   & $\rho_L$ & $V_L$     & $p_L$   \\
+            \hline
+            1    & 1        & 0.75      & 1       & 0.125    & 0         & 0.1     \\
+            \hline
+            2    & 1        & -2        & 0.4     & 1        & 2         & 0.4     \\
+            \hline
+            3    & 1        & 0         & 1000    & 1        & 0         & 0.01    \\
+            \hline
+            4    & 5.99924  & 19.5975   & 460.894 & 5.99242  & -6.19633  & 49.0950 \\
+            \hline
+            5    & 1        & -19.59745 & 1000    & 1        & -19.59745 & 0.01    \\
+            \hline
+        \end{tabular}
+    \end{center}
+\end{table}
+
+根据以上过程解得结果为：
+
+\begin{table}[H]
+    % \footnotesize
+    \small
+    \begin{center}
+        \caption{精确解}
+        \begin{tabular}{|c|c|c|c|c|c|c|c|c|c|}
+            \hline
+            问题 & 类型 & $p_m$    & $V_m$   & $\rho_{mL}$                   & ${\rho_{mR}}$ & $S_{LL}$                     & $S_{LR}$                      & $S_{RL}$                      & $S_{RR}$ \\
+            \hline
+            1    & RCS  & 0.4663   & 1.3609  & 0.5799                        & 0.3397        & -0.4332                      & 0.2999                        & \multicolumn{2}{|c|}{2.1532}             \\
+            \hline
+            2    & RNR  & 0.001894 & 0       & \multicolumn{2}{|c|}{0.02185} & -2.7483       & -0.3483                      & 0.3483                        & 2.7483                                   \\
+            \hline
+            3    & RCS  & 460.8938 & 19.5975 & 0.5751                        & 5.9992        & -37.4166                     & -13.8996                      & \multicolumn{2}{|c|}{23.5175}            \\
+            \hline
+            4    & SCS  & 1691.6   & 8.6898  & 14.2823                       & 31.0426       & \multicolumn{2}{|c|}{0.7896} & \multicolumn{2}{|c|}{12.2508}                                            \\
+            \hline
+            5    & RCS  & 460.8938 & 0       & 0.5751                        & 5.9992        & -57.0140                     & -33.4971                      & \multicolumn{2}{|c|}{3.9201}             \\
+            \hline
+        \end{tabular}
+    \end{center}
+\end{table}
+
+其中$S_{LR},S_{LL}$指的是左侧波的速度，
+假如是中心膨胀波则是膨胀波两侧的速度；
+假如是左行激波则相等为激波的速度。
+右侧同理。
+
+以下假设间断为0处出现，末时刻在最快的波运动到$\pm0.8$，
+进行绘图给出$p,V,\rho$的情况。
+
+
+
+
+\begin{table}[H]
+    \footnotesize
+    \begin{center}
+        \caption{等熵涡误差$\|\rho-\rho_{ana}\|_{L1}, t=2$} %需要学习统一设置；0代表不变？
+        \begin{tabular}{|c|c|c|c|c|c|c|c|c|}
+            \hline
+            \multirow{2}{*}{$h$} & \multicolumn{2}{|c|}{WENO5 $\epsilon=10^{-6}$} & \multicolumn{2}{|c|}{WENO5 $\epsilon=10^{-3}$} & \multicolumn{2}{|c|}{WENO5m $\epsilon=10^{-6}$} & \multicolumn{2}{|c|}{UW5}                                                                             \\
+            \cline{2-9}
+                                 & $\|\rho-\rho_{ana}\|_{L1}$                     & 阶数                                           & $\|\rho-\rho_{ana}\|_{L1}$                      & 阶数                      & $\|\rho-\rho_{ana}\|_{L1}$ & 阶数   & $\|\rho-\rho_{ana}\|_{L1}$ & 阶数   \\
+            \hline
+            $1/20$               & 3.1230530e-01                                  &                                                & 2.9349690e-01                                   &                           & 2.2693522e-01              &        & 9.5435399e-02              &        \\
+            \hline
+            $1/40$               & 5.2543401e-02                                  & 2.5714                                         & 3.2229027e-02                                   & 3.1869                    & 2.9438651e-02              & 2.9465 & 1.2498203e-02              & 2.9328 \\
+            \hline
+            $1/80$               & 4.4590657e-03                                  & 3.5587                                         & 2.4662220e-03                                   & 3.7080                    & 9.2472577e-04              & 4.9925 & 6.0787613e-04              & 4.3618 \\
+            \hline
+            $1/160$              & 2.5012196e-04                                  & 4.1560                                         & 8.1062336e-05                                   & 4.9271                    & 2.2989118e-05              & 5.3300 & 2.0860055e-05              & 4.8650 \\
+            \hline
+            $1/320$              & 1.1233154e-05                                  & 4.4768                                         & 1.9013022e-06                                   & 5.4140                    & 6.6682832e-07              & 5.1075 & 6.6494326e-07              & 4.9714 \\
+            \hline
+            $1/640$              & 3.7072570e-07                                  & 4.9213                                         & 4.4152115e-08                                   & 5.4284                    & 2.0893558e-08              & 4.9962 & 2.0892949e-08              & 4.9921 \\
+            \hline
+        \end{tabular}
+    \end{center}
+\end{table}
+
+
+% 1
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=18cm]{p1.png}  %需调整
+    \caption{问题1$x-t$图}
+    \label{fig:1a}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=18cm]{p1_l.png}  %需调整
+    \caption{问题1末时刻分布}
+    \label{fig:1b}
+\end{figure}
+
+
+%2
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=18cm]{p2.png}  %需调整
+    \caption{问题2$x-t$图}
+    \label{fig:2a}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=18cm]{p2_l.png}  %需调整
+    \caption{问题2末时刻分布}
+    \label{fig:2b}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=18cm]{p3.png}  %需调整
+    \caption{问题3$x-t$图}
+    \label{fig:3a}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=18cm]{p3_l.png}  %需调整
+    \caption{问题3末时刻分布}
+    \label{fig:3b}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=18cm]{p4.png}  %需调整
+    \caption{问题4$x-t$图}
+    \label{fig:4a}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=18cm]{p4_l.png}  %需调整
+    \caption{问题4末时刻分布}
+    \label{fig:4b}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=18cm]{p5.png}  %需调整
+    \caption{问题5$x-t$图}
+    \label{fig:5a}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=18cm]{p5_l.png}  %需调整
+    \caption{问题5末时刻分布}
+    \label{fig:5b}
+\end{figure}
+
+\section{Godunov方法}
+
+采用零阶重构，Godunov方法相当于采用精确黎曼问题计算通量并采用显式欧拉时间推进，
+具体证明见\cite{2013Riemann}，则有：
+
+$$
+    \frac{\inc U_i}{\inc t} = \frac{F_{i-1/2}-F_{i+1/2}}{\inc x}
+$$
+其中$F_{i+1/2}$是界面的黎曼问题取得的通量。
+以上要求精确波速定义的CFL数，本文取$\inc t = \frac{0.5\inc x}{|S|_{max}}$一定满足。
+本文计算条件和上一问一样，取128个单元进行计算直到上一题给出的末时刻。
+
+不同问题的计算结果如下。其中可见，当膨胀波越过原点时，Godunov方法导致出现一个虚假的间断，
+而膨胀波都在一侧的时候是连续的。图中所有的激波的较好分辨，而运动的接触间断耗散较大
+被抹平；Godunov格式对静止的接触间断保持较好。
+
+本文结果与书\cite{2013Riemann}保持相符。
+
+
+\bibliography{refs}{}
+\bibliographystyle{unsrt}
+
+
+\section*{附录}
+
+本文使用的计算代码都在
+\href{https://github.com/harryzhou2000/HW_ACFD}{Github的Git Repo（点击前往）}。
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=18cm]{p1_gn.png}  %需调整
+    \caption{问题1 Godunov方法解}
+    \label{fig:1c}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=18cm]{p2_gn.png}  %需调整
+    \caption{问题2 Godunov方法解}
+    \label{fig:2c}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=18cm]{p3_gn.png}  %需调整
+    \caption{问题3 Godunov方法解}
+    \label{fig:3c}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=18cm]{p4_gn.png}  %需调整
+    \caption{问题4 Godunov方法解}
+    \label{fig:4c}
+\end{figure}
+
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=18cm]{p5_gn.png}  %需调整
+    \caption{问题5 Godunov方法解}
+    \label{fig:5c}
+\end{figure}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+% \section{SECTION 节}
+
+% 一个
+
+% \subsection{SUBSECTION 小节}
+
+% 示例
+
+% \subsubsection{SUBSUBSECTION 小节节}
+
+% 字体字号临时调整：
+% {
+%    \sffamily\bfseries\zihao{3} 哈哈哈哈哈 abcde %三号 sans系列字体（一开始设置的） 加粗
+%    %只对大括号范围内的后面的字有用，在标题、题注里面同样
+% }
+% { 
+%    \CJKfamily{kaiti}\zihao{5}\itshape 哈哈哈哈哈 abcde%三号 kaiti（一开始设置的, 斜体（英文有变）
+%    %只对大括号范围内的后面的字有用，在标题、题注里面同样
+% }
+
+% 一大堆一大堆一大堆一大堆一大堆一大堆一大堆一大堆一大堆一大堆
+% 一大堆一大堆一大堆一大堆一大堆一大堆一大堆一大堆一大堆一大堆一大堆一大堆
+% 一大堆一大堆一大堆一大堆一大堆一大堆一大堆一大堆一大堆一大堆一大堆一大堆
+% 一大堆一大堆一大堆一大堆一大堆一大堆一大堆一大堆一大堆一大堆一大堆一大堆
+
+% \begin{center}
+%     居中的什么乱七八糟东西
+% \end{center}
+
+
+% 一个列表：
+% \begin{itemize}
+%     \item asef
+%     \item[\%] asdf
+%     \item[\#] aaa
+% \end{itemize}
+
+% 一个有序列表：
+% \begin{enumerate}
+%     \item asef
+%     \item[\%\%] asdf
+%     \item aaa
+% \end{enumerate}
+
+% 一个嵌套列表，考虑缩进：
+% \begin{enumerate}[itemindent=2em] %缩进
+%     \item asef \par asaf 东西东西东西东西东西东西东西东西东西东西东西东西东西东西东西东西东西东西东西东西东西东西东西东西，
+%           F不是不是不是不是不是不是不是不是不是不是不是不是不是不是不是
+%           \begin{itemize}[itemindent=2em]  %缩进
+%               \item lalala
+%               \item mamama
+%           \end{itemize}
+%     \item asdf
+%     \item aaa
+% \end{enumerate}
+
+% \section{SECTION}
+
+% 图片排版：
+
+% \begin{figure}[H]
+%     \begin{minipage}[c]{0.45\linewidth}  %需调整
+%         \centering
+%         \includegraphics[width=8cm]{RAM_O2_4660.png}  %需调整
+%         \caption{第一个图}
+%         \label{fig:a}
+%     \end{minipage}
+%     \hfill %弹性长度
+%     \begin{minipage}[c]{0.45\linewidth}  %需调整
+%         \centering
+%         \includegraphics[width=8cm]{RAM_O4_4660.png}  %需调整
+%         \caption{第二个图}
+%         \label{fig:b}
+%     \end{minipage}
+% \end{figure}
+
+% figure的选项为“htbp”时，会自动浮动，是“H”则和文字顺序严格一些。
+
+% \begin{figure}[H]
+%     \begin{minipage}[c]{0.45\linewidth}  %需调整
+%         \centering
+%         \includegraphics[width=8cm]{RAM_O2_4660.png}  %需调整
+%         \label{fig:x}
+%     \end{minipage}
+%     \hfill %弹性长度
+%     \begin{minipage}[c]{0.45\linewidth}  %需调整
+%         \centering
+%         \includegraphics[width=8cm]{RAM_O4_4660.png}  %需调整
+%         \label{fig:y}
+%     \end{minipage}
+%     \caption{第三个图}
+% \end{figure}
+
+% \begin{figure}[H]
+%     \centering
+%     \includegraphics[width=8cm]{RAM_O4_4660.png}  %需调整
+%     \label{fig:c}
+%     \caption{第四个图}
+% \end{figure}
+
+
+
+% \subsection{SUBSECTION}
+
+% 关于怎么搞表格：
+
+% \begin{table*}[htbp]
+%     \footnotesize
+%     \begin{center}
+%         \caption{一端力矩载荷下的结果\fontsize{0pt}{2em}} %需要学习统一设置；0代表不变？
+%         \label{表2}
+%         \begin{tabular}{|c|c|c|c|c|c|c|}
+%             \hline
+%             节点数                              & 积分方案              & 单元数                & $h=1m$                & $h=0.1m$              & $h=0.05m$             & $h=0.01m$             \\
+%             \hline
+%             \multirow{6}{*}{2}                  & \multirow{3}{*}{精确} & 1                     & 4.235294117647059E-08 & 1.406250000000000E-06 & 2.862823061630218E-06 & 1.439654482924097E-05 \\
+%             \cline{3-7}
+%                                                 &                       & 10                    & 5.975103734439814E-08 & 4.235294117646719E-05 & 1.800000000000410E-04 & 1.406249999999849E-03 \\
+%             \cline{3-7}
+%                                                 &                       &
+%             10000                               & 5.999999915514277E-08 & 5.999996622448291E-05 & 4.799989509752562E-04 & 5.999793702477535E-02                                                 \\
+%             \cline{2-7}
+%                                                 & \multirow{3}{*}{减缩} & 1                     & 6.000000000000001E-08 & 5.999999999999972E-05 & 4.799999999999911E-04 & 6.000000000003492E-02 \\
+%             \cline{3-7}
+%                                                 &                       & 10                    & 6.000000000000071E-08 & 5.999999999999142E-05 & 4.799999999995399E-04 & 5.999999999903294E-02 \\
+%             \cline{3-7}
+%                                                 &                       & 10000                 & 6.000000112649221E-08 & 5.999999234537814E-05 & 4.799997501925065E-04 & 6.000037607984510E-02 \\
+%             \hline
+
+%             \multirow{6}{*}{3}                  & \multirow{3}{*}{精确} & 1                     & 6.000000000000003E-08 & 6.000000000000202E-05 & 4.800000000000831E-04 & 6.000000000056749E-02 \\
+%             \cline{3-7}
+%                                                 &                       & 10                    & 5.999999999999932E-08 & 6.000000000004190E-05 & 4.800000000000206E-04 & 6.000000001613761E-02 \\
+%             \cline{3-7}
+%                                                 &                       & 10000                 & 6.000000013769874E-08 & 5.999989495410481E-05 & 4.799942099727246E-04 & 6.000263852944890E-02 \\
+%             \cline{2-7}
+%                                                 & \multirow{3}{*}{减缩} & 1                     & 6.000000000000002E-08 & 6.000000000000267E-05 & 4.800000000000754E-04 & 5.999999999989982E-02 \\
+%             \cline{3-7}
+%                                                 &                       & 10                    & 5.999999999999899E-08 & 5.999999999987338E-05 & 4.799999999947916E-04 & 5.999999998625345E-02 \\
+%             \cline{3-7}
+%                                                 &                       & 10000                 & 5.999999728157785E-08 & 5.999994914321980E-05 & 4.800008377474699E-04 & 5.999472246346305E-02 \\
+%             \hline
+
+%             \multicolumn{3}{|c|}{欧拉-伯努利解} & 6.000000000000000E-08 & 6.000000000000000E-05 & 4.800000000000000E-04 & 6.000000000000000E-02                                                 \\
+%             \hline
+%         \end{tabular}
+%     \end{center}
+% \end{table*}
+
+% 多行、多列表格的示例，基本思想是，多列的那个东西放在多列的最上面一格，下面的行要用\&来空开，也就是\&的数目
+% 和普通表格一样，是列数减一；
+% 多列的部分的话，就是每行内的操作，相应的\&就少了，见最后一行。
+
+% tabular的“|c|c|c|c|c|c|c|”，意思是，竖线-居中-竖线-居中-竖线……，可以选择省略一些竖线；
+% 每行之间的hline，代表贯通的横线，cline是有范围的横线。
+
+% \subsubsection{SUBSUBSECTION}
+
+% newcommand可以用来定义新指令，似乎基本上就是字符串替换……不太懂，总之在公式里面可以用，
+% 外面也经常用。
+
+
+
+
+
+
+% 公式这么写：
+% \begin{equation}
+%     \begin{aligned}
+%         \frac{aa(x^1+x^2)}{\sqrt{x^1x^2}}
+%         \nabla\times\uu
+%         = & u_{j;m}\g^m\times\g^j
+%         =u_{j;m}\epsilon^{mjk}\g_k
+%         =u_{j,m}\epsilon^{mjk}\g_k                           \\
+%         = & \frac{1}{\sqrt{g}}\left|
+%         \begin{matrix}
+%             \g_1       & \g_2       & \g_3       \\
+%             \partial_1 & \partial_2 & \partial_3 \\
+%             u_1        & u_2        & u_3
+%         \end{matrix}
+%         \right|
+%         =\frac{\sqrt{x^1x^2}}{aa(x^1+x^2)}
+%         \left|
+%         \begin{matrix}
+%             \g_1                        & \g_2                        & \g_3       \\
+%             \partial_1                  & \partial_2                  & \partial_3 \\
+%             u^1\frac{a^2(x^1+x^2)}{x^1} & u^2\frac{a^2(x^1+x^2)}{x^2} & u^3
+%         \end{matrix}
+%         \right|                                              \\
+%         = & \frac{\sqrt{x^1x^2}}{aa(x^1+x^2)}
+%         [[\g_1\,\g_2\,\g_3]]
+%         diag\left(
+%         u^3_{,2}-u^2_{,3}\frac{a^2(x^1+x^2)}{x^2},\,
+%         u^1_{,3}\frac{a^2(x^1+x^2)}{x^1}-u^3_{,1},\, \right. \\
+%           & \left.
+%         u^2_{,1}\frac{a^2(x^1+x^2)}{x^2}+u^2\frac{a^2}{x^2}
+%         -
+%         u^1_{,2}\frac{a^2(x^1+x^2)}{x^1}-u^1\frac{a^2}{x^1}
+%         \right)                                              \\
+%         = & \frac{\sqrt{x^1x^2}}{aa(x^1+x^2)}
+%         [[\bm{e}_1\,\bm{e}_2\,\bm{e}_3]]
+%         \left[\begin{array}{ccc} a & -a & 0\\ \frac{a\,x^{2}}{\sqrt{x^{1}\,x^{2}}} & \frac{a\,x^{1}}{\sqrt{x^{1}\,x^{2}}} & 0\\ 0 & 0 & 1 \end{array}\right]              \\
+%           & diag\left(
+%         u^3_{,2}-u^2_{,3}\frac{a^2(x^1+x^2)}{x^2},\,
+%         u^1_{,3}\frac{a^2(x^1+x^2)}{x^1}-u^3_{,1},\, \right. \\
+%           & \left.
+%         u^2_{,1}\frac{a^2(x^1+x^2)}{x^2}+u^2\frac{a^2}{x^2}
+%         -
+%         u^1_{,2}\frac{a^2(x^1+x^2)}{x^1}-u^1\frac{a^2}{x^1}
+%         \right)
+%     \end{aligned}
+%     \label{eq:curlu}
+% \end{equation}
+
+% 如果不想带编号的公式（或者图表），用 equation* 这种环境。
+
+% 引用，如果是引用的图表，就用表\ref{表2}，图\ref{fig:a}这种，代码里是用label定义的标签来引用，
+% 编号是自动生成的。公式引用一般写成：\eqref{eq:curlu}。目前这些引用自动会有超链接，反正有那个包自动
+% 好像就会有……呜呜呜也不知道是怎么做到的，先这么用吧。
+
+% \paragraph{PARA}
+
+% 引用文献用\\cite这些，要用bibtex，暂时不做。
+
+% \subparagraph{SUBPARA}
+
+\end{document}
