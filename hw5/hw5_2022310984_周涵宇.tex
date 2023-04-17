@@ -247,6 +247,36 @@ $$
 
 \subsection{}
 
+根据\ref{fig:a}，不同的$\alpha$具有不同的色散关系，
+考虑有限大色散误差$|\Re(k')-k|<0.01$，
+则根据函数的单调性分析可知，当色散曲线与
+$k+0.01$线相切时，$k^*$最大。
+
+色散曲线斜率为0的点解得当$\alpha > \frac{1}{30}$，
+除了零的另一个范围内实根为：
+
+$$
+    k_1=\pi -\mathrm{acos}\left(\frac{12\,\alpha -1}{18\,\alpha }\right)
+$$
+
+代入$\Re(k'(k_1,\alpha))-k-\varepsilon=0$，数值求解得到
+此时$\alpha_{opt}=0.0526196845037503219456$。
+
+同时，数值计算$k^*$，其分布符合关于切线的预测：
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=8cm]{Aopt.png}  %需调整
+    \caption{不同$\alpha$下的分辨范围}
+\end{figure}
+此时最好的分辨范围是$k^*_{opt}\approx1.486$。
+
+绘制色散曲线，可见$\alpha_{opt}$给出的色散是分辨范围最大的：
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=8cm]{RE_Err.png}  %需调整
+    \caption{不同$\alpha$的色散曲线}
+\end{figure}
+
 
 \section{附录}
 
