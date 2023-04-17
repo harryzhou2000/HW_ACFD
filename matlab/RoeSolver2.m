@@ -44,6 +44,7 @@ alpha1 = 0.5./aRoe .* ( uinc(1,:).*lam5Roe - uinc(2,:) - aRoe.*alpha2 );
 alpha5 = uinc(1,:) - (alpha1 + alpha2);
 
 
+
 % Pike
 % incP = pR - pL;
 % rhoRoe = sqrt(rhoR.*rhoL);

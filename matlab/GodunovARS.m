@@ -1,7 +1,31 @@
 N = 300;
+pnum = 1;
+
+ARSType = 3;
+ARSFix = 0;
+if ARSType == 1
+    if ARSFix == 0
+Name = 'Roe';
+    elseif ARSFix == 1
+        Name = 'Roe Entropy Fixed';
+    elseif ARSFix == 2
+        Name = 'Roe Entropy Fixed V1';
+    else
+        error('input'); 
+    end
+elseif ARSType == 2
+    Name = 'HLL';
+elseif ARSType == 3
+    Name = 'HLLC';
+else
+    error('input'); 
+end
+
+CFL = 0.5;
 
 
-pnum = 5;
+
+
 [rhoL,uL,pL,rhoR,uR,pR] = getRiemannProblem(pnum);
 
 
@@ -22,7 +46,7 @@ iright = circshift(ithis,-1);
 
 u0 = (xc < 0) .* UL + (xc > 0) .* UR;
 
-dt = 0.5 * h/vMax;
+dt = CFL * h/vMax;
 
 u = u0;
 t = 0;
@@ -38,7 +62,7 @@ for iter = 1:10000000
         ifend = true;
     end
     
-    F = EulerRiemannFluxExact_1D(u(:,ileft),u,gamma,1e-4);
+    F = EulerFluxARS(u(:,ileft),u,gamma,1,ARSType, ARSFix);
     dudt = (F - F(:,iright)) / h;
     dudt(:,1) = 0;
     dudt(:,end) = 0;
@@ -62,7 +86,7 @@ end
 figure(4); clf; set(gca, 'FontName', 'Times New Roman');
 set(gcf,'Position',[100,100,1200,400]);
 t = tiledlayout(1,3,'TileSpacing','Compact' );
-title(t, sprintf("Problem %d, t=%.4g, N=%d", pnum, tMax, N));
+title(t, sprintf("Problem %d, %s Flux, t=%.4g, N=%d", pnum, Name, tMax, N));
 
 
 nexttile; hold on; set(gca, 'FontName', 'Times New Roman');
@@ -92,7 +116,7 @@ l.Location = 'best';
 
 
 
-print(gcf,sprintf("p%d_gn_N%d.png", pnum, N),'-dpng','-r300')
+print(gcf,sprintf("p%d_%s_N%d.png", pnum,Name, N),'-dpng','-r300')
 
 
 

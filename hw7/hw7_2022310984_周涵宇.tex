@@ -206,39 +206,11 @@ MSWordLineSpacingMultiple=1.5
 
 
 
-
-\begin{table}[H]
-    \footnotesize
-    \begin{center}
-        \caption{等熵涡误差$\|\rho-\rho_{ana}\|_{L1}, t=2$} %需要学习统一设置；0代表不变？
-        \begin{tabular}{|c|c|c|c|c|c|c|c|c|}
-            \hline
-            \multirow{2}{*}{$h$} & \multicolumn{2}{|c|}{WENO5 $\epsilon=10^{-6}$} & \multicolumn{2}{|c|}{WENO5 $\epsilon=10^{-3}$} & \multicolumn{2}{|c|}{WENO5m $\epsilon=10^{-6}$} & \multicolumn{2}{|c|}{UW5}                                                                             \\
-            \cline{2-9}
-                                 & $\|\rho-\rho_{ana}\|_{L1}$                     & 阶数                                           & $\|\rho-\rho_{ana}\|_{L1}$                      & 阶数                      & $\|\rho-\rho_{ana}\|_{L1}$ & 阶数   & $\|\rho-\rho_{ana}\|_{L1}$ & 阶数   \\
-            \hline
-            $1/20$               & 3.1230530e-01                                  &                                                & 2.9349690e-01                                   &                           & 2.2693522e-01              &        & 9.5435399e-02              &        \\
-            \hline
-            $1/40$               & 5.2543401e-02                                  & 2.5714                                         & 3.2229027e-02                                   & 3.1869                    & 2.9438651e-02              & 2.9465 & 1.2498203e-02              & 2.9328 \\
-            \hline
-            $1/80$               & 4.4590657e-03                                  & 3.5587                                         & 2.4662220e-03                                   & 3.7080                    & 9.2472577e-04              & 4.9925 & 6.0787613e-04              & 4.3618 \\
-            \hline
-            $1/160$              & 2.5012196e-04                                  & 4.1560                                         & 8.1062336e-05                                   & 4.9271                    & 2.2989118e-05              & 5.3300 & 2.0860055e-05              & 4.8650 \\
-            \hline
-            $1/320$              & 1.1233154e-05                                  & 4.4768                                         & 1.9013022e-06                                   & 5.4140                    & 6.6682832e-07              & 5.1075 & 6.6494326e-07              & 4.9714 \\
-            \hline
-            $1/640$              & 3.7072570e-07                                  & 4.9213                                         & 4.4152115e-08                                   & 5.4284                    & 2.0893558e-08              & 4.9962 & 2.0892949e-08              & 4.9921 \\
-            \hline
-        \end{tabular}
-    \end{center}
-\end{table}
-
-
 % 1
 \begin{figure}[H]
     \centering
     \includegraphics[width=18cm]{p1.png}  %需调整
-    \caption{问题1$x-t$图}
+    \caption{问题1，$x-t$图}
     \label{fig:1a}
 \end{figure}
 
@@ -254,7 +226,7 @@ MSWordLineSpacingMultiple=1.5
 \begin{figure}[H]
     \centering
     \includegraphics[width=18cm]{p2.png}  %需调整
-    \caption{问题2$x-t$图}
+    \caption{问题2，$x-t$图}
     \label{fig:2a}
 \end{figure}
 
@@ -268,7 +240,7 @@ MSWordLineSpacingMultiple=1.5
 \begin{figure}[H]
     \centering
     \includegraphics[width=18cm]{p3.png}  %需调整
-    \caption{问题3$x-t$图}
+    \caption{问题3，$x-t$图}
     \label{fig:3a}
 \end{figure}
 
@@ -282,7 +254,7 @@ MSWordLineSpacingMultiple=1.5
 \begin{figure}[H]
     \centering
     \includegraphics[width=18cm]{p4.png}  %需调整
-    \caption{问题4$x-t$图}
+    \caption{问题4，$x-t$图}
     \label{fig:4a}
 \end{figure}
 
@@ -296,7 +268,7 @@ MSWordLineSpacingMultiple=1.5
 \begin{figure}[H]
     \centering
     \includegraphics[width=18cm]{p5.png}  %需调整
-    \caption{问题5$x-t$图}
+    \caption{问题5，$x-t$图}
     \label{fig:5a}
 \end{figure}
 
@@ -317,14 +289,88 @@ $$
 $$
 其中$F_{i+1/2}$是界面的黎曼问题取得的通量。
 以上要求精确波速定义的CFL数，本文取$\inc t = \frac{0.5\inc x}{|S|_{max}}$一定满足。
-本文计算条件和上一问一样，取128个单元进行计算直到上一题给出的末时刻。
+本文计算条件和上一问一样，取100、300个单元进行计算直到上一题给出的末时刻。
 
-不同问题的计算结果如下。其中可见，当膨胀波越过原点时，Godunov方法导致出现一个虚假的间断，
+不同问题的计算结果如下。
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=18cm]{p1_gn_N100.png}  %需调整
+    \caption{问题1 Godunov方法解，100网格}
+    \label{fig:1c}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=18cm]{p1_gn_N300.png}  %需调整
+    \caption{问题1 Godunov方法解，300网格}
+    \label{fig:1c}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=18cm]{p2_gn_N100.png}  %需调整
+    \caption{问题2 Godunov方法解，100网格}
+    \label{fig:2c}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=18cm]{p2_gn_N300.png}  %需调整
+    \caption{问题2 Godunov方法解，300网格}
+    \label{fig:2c}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=18cm]{p3_gn_N100.png}  %需调整
+    \caption{问题3 Godunov方法解，100网格}
+    \label{fig:3c}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=18cm]{p3_gn_N300.png}  %需调整
+    \caption{问题3 Godunov方法解，300网格}
+    \label{fig:3c}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=18cm]{p4_gn_N100.png}  %需调整
+    \caption{问题4 Godunov方法解，100网格}
+    \label{fig:4c}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=18cm]{p4_gn_N300.png}  %需调整
+    \caption{问题4 Godunov方法解，300网格}
+    \label{fig:4c}
+\end{figure}
+
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=18cm]{p5_gn_N100.png}  %需调整
+    \caption{问题5 Godunov方法解，100网格}
+    \label{fig:5c}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=18cm]{p5_gn_N300.png}  %需调整
+    \caption{问题5 Godunov方法解，300网格}
+    \label{fig:5c}
+\end{figure}
+
+
+其中可见，当膨胀波越过原点时，Godunov方法导致出现一个虚假的间断，
 而膨胀波都在一侧的时候是连续的。图中所有的激波的较好分辨，而运动的接触间断耗散较大
-被抹平；Godunov格式对静止的接触间断保持较好。
+被抹平；Godunov格式对静止的接触间断保持较好。同时，由于精确黎曼问题的限制，
+CFL条件满足时结果是自动保正的。加密网格后解都趋于解析解，说明格式至少具有一阶相容性。
 
 本文结果与书\cite{2013Riemann}保持相符。
-
 
 \bibliography{refs}{}
 \bibliographystyle{unsrt}
@@ -335,41 +381,7 @@ $$
 本文使用的计算代码都在
 \href{https://github.com/harryzhou2000/HW_ACFD}{Github的Git Repo（点击前往）}。
 
-\begin{figure}[H]
-    \centering
-    \includegraphics[width=18cm]{p1_gn.png}  %需调整
-    \caption{问题1 Godunov方法解}
-    \label{fig:1c}
-\end{figure}
 
-\begin{figure}[H]
-    \centering
-    \includegraphics[width=18cm]{p2_gn.png}  %需调整
-    \caption{问题2 Godunov方法解}
-    \label{fig:2c}
-\end{figure}
-
-\begin{figure}[H]
-    \centering
-    \includegraphics[width=18cm]{p3_gn.png}  %需调整
-    \caption{问题3 Godunov方法解}
-    \label{fig:3c}
-\end{figure}
-
-\begin{figure}[H]
-    \centering
-    \includegraphics[width=18cm]{p4_gn.png}  %需调整
-    \caption{问题4 Godunov方法解}
-    \label{fig:4c}
-\end{figure}
-
-
-\begin{figure}[H]
-    \centering
-    \includegraphics[width=18cm]{p5_gn.png}  %需调整
-    \caption{问题5 Godunov方法解}
-    \label{fig:5c}
-\end{figure}
 
 
 
