@@ -1,5 +1,5 @@
-N = 300;
-pnum = 1;
+N = 100;
+pnum = 5;
 
 ARSType = 3;
 ARSFix = 0;
@@ -48,38 +48,80 @@ u0 = (xc < 0) .* UL + (xc > 0) .* UR;
 
 dt = CFL * h/vMax;
 
-u = u0;
-t = 0;
+ARSFix0 = ARSFix;
 
-figure(3); clf; hold off;
-
-for iter = 1:10000000
-    dtc = dt;
-    tnext = t + dtc;
-    ifend = false;
-    if tnext >= tMax
-        dtc = tMax - t;
-        ifend = true;
+for iT = 0:3
+    dtM = 1;
+    if iT > 0
+        ARSType = iT;
+        ARSFix = 0;
+        if pnum == 1 || pnum == 2
+            ARSFix = ARSFix0;
+        end
+        if pnum == 4 && iT == 1
+            dtM = 0.4;
+        end
+        
+        if ARSType == 1
+            if ARSFix == 0
+                cName = 'Roe';
+            elseif ARSFix == 1
+                cName = 'Roe Entropy Fixed';
+            elseif ARSFix == 2
+                cName = 'Roe Entropy Fixed V1';
+            else
+                error('input');
+            end
+        elseif ARSType == 2
+            cName = 'HLL';
+        elseif ARSType == 3
+            cName = 'HLLC';
+        else
+            error('input');
+        end
     end
     
-    F = EulerFluxARS(u(:,ileft),u,gamma,1,ARSType, ARSFix);
-    dudt = (F - F(:,iright)) / h;
-    dudt(:,1) = 0;
-    dudt(:,end) = 0;
-    u = u + dtc * dudt;
+    u = u0;
+    t = 0;
+
+    figure(3); clf; hold off;
+
+    for iter = 1:10000000
+        dtc = dt * dtM;
+        tnext = t + dtc;
+        ifend = false;
+        if tnext >= tMax
+            dtc = tMax - t;
+            ifend = true;
+        end
+
+        F = EulerFluxARS(u(:,ileft),u,gamma,1,ARSType, ARSFix);
+        dudt = (F - F(:,iright)) / h;
+        dudt(:,1) = 0;
+        dudt(:,end) = 0;
+        u = u + dtc * dudt;
+
+        t = t + dtc;
+        if ifend
+            break;
+        end
+        if mod(iter, 10 == 0)
+           plot(xc,u(1,:),'-*');
+           drawnow;
+        end
+
+    end
+    if iT ==0 
+        [rho,velo,p] = f_cons2prim(u,gamma,1);
+    else
+        [rhos{iT},velos{iT},ps{iT}] = f_cons2prim(u,gamma,1);
+        names{iT} = cName;
+    end
     
-    t = t + dt;
-    if ifend
-        break;
-    end
-    if mod(iter, 10 == 0)
-       plot(xc,u(1,:),'-*');
-       drawnow;
-    end
     
 end
 
-[rho,velo,p] = f_cons2prim(u,gamma,1);
+
 
 %%
 
@@ -117,6 +159,52 @@ l.Location = 'best';
 
 
 print(gcf,sprintf("p%d_%s_N%d.png", pnum,Name, N),'-dpng','-r300')
+
+
+%%
+lineStyles = {'--m',':r','-.b'};
+
+
+figure(5); clf; set(gca, 'FontName', 'Times New Roman');
+set(gcf,'Position',[100,100,1200,400]);
+t = tiledlayout(1,3,'TileSpacing','Compact' );
+title(t, sprintf("Problem %d, t=%.4g, N=%d", pnum, tMax, N));
+
+
+nexttile; hold on; set(gca, 'FontName', 'Times New Roman');
+plot(xEnd, rhoEnd,'DisplayName', 'Exact')
+for iT = 1:3
+    plot(xc, rhos{iT},lineStyles{iT},'DisplayName', names{iT})
+end
+xlabel('x');
+ylabel('\rho');
+grid on;
+
+nexttile; hold on; set(gca, 'FontName', 'Times New Roman');
+plot(xEnd, uEnd,'DisplayName', 'Exact')
+for iT = 1:3
+    plot(xc, velos{iT},lineStyles{iT},'DisplayName', names{iT})
+end
+xlabel('x');
+ylabel('u');
+grid on;
+
+nexttile; hold on; set(gca, 'FontName', 'Times New Roman');
+plot(xEnd, pEnd,'DisplayName', 'Exact')
+for iT = 1:3
+    plot(xc, ps{iT},lineStyles{iT},'DisplayName', names{iT})
+end
+xlabel('x');
+ylabel('p');
+grid on;
+l = legend;
+l.Location = 'best';
+
+
+
+
+
+print(gcf,sprintf("p%d_SUM_N%d.png", pnum, N),'-dpng','-r300')
 
 
 

@@ -447,6 +447,41 @@ HLL与HLLC计算如下：
 问题5包含一个静止接触间断，可见HLLC和Roe格式在稀疏网格
 上对静止接触间断的分辨好于HLL格式。
 
+\subsection{汇总}
+
+为了方便对比，给出100网格下的不同算例计算结果：
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=18cm]{p1_SUM_N100.png}  %需调整
+    \caption{问题1不同格式对比，100网格}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=18cm]{p2_SUM_N100.png}  %需调整
+    \caption{问题2不同格式对比，100网格}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=18cm]{p3_SUM_N100.png}  %需调整
+    \caption{问题3不同格式对比，100网格}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=18cm]{p4_SUM_N100.png}  %需调整
+    \caption{问题4不同格式对比，100网格}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=18cm]{p5_SUM_N100.png}  %需调整
+    \caption{问题5不同格式对比，100网格}
+\end{figure}
+
+总体而言，接触间断和激波附近，HLL最差，HLLC最好。
 
 
 本文结果与书\cite{2013Riemann}保持相符。
