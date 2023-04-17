@@ -8,4 +8,7 @@
 *latexmk
 *.fls
 *.xdv
+*.blg
+*.bbl
+*.mat
 
