@@ -6,7 +6,7 @@
 
 
 
-\title{{\bfseries\rmfamily\Huge{高等计算流体力学\hspace{1em}\\第8次作业}}}
+\title{{\bfseries\rmfamily\Huge{高等计算流体力学\hspace{1em}\\第9次作业}}}
 \author{周涵宇 2022310984}
 \date{}
 
@@ -142,7 +142,7 @@ MSWordLineSpacingMultiple=1.5
 
 \maketitle
 
-\section{近似黎曼求解器}
+\section{计算问题与计算格式}
 
 根据Toro的书\cite{2013Riemann}有关章节，计算以下1D欧拉方程Riemann问题，
 
@@ -160,9 +160,11 @@ MSWordLineSpacingMultiple=1.5
             \hline
             3    & 1        & 0         & 1000    & 1        & 0         & 0.01    \\
             \hline
-            4    & 5.99924  & 19.5975   & 460.894 & 5.99242  & -6.19633  & 49.0950 \\
+            4    & 1        & 0         & 0.01    & 1        & 0         & 100     \\
             \hline
-            5    & 1        & -19.59745 & 1000    & 1        & -19.59745 & 0.01    \\
+            5    & 5.99924  & 19.5975   & 460.894 & 5.99242  & -6.19633  & 49.0950 \\
+            \hline
+            6    & 1        & -19.59745 & 1000    & 1        & -19.59745 & 0.01    \\
             \hline
         \end{tabular}
     \end{center}
@@ -177,17 +179,19 @@ MSWordLineSpacingMultiple=1.5
         \caption{精确解}
         \begin{tabular}{|c|c|c|c|c|c|c|c|c|c|}
             \hline
-            问题 & 类型 & $p_m$    & $V_m$   & $\rho_{mL}$                   & ${\rho_{mR}}$ & $S_{LL}$                     & $S_{LR}$                      & $S_{RL}$                      & $S_{RR}$ \\
+            问题 & 类型 & $p_m$    & $V_m$   & $\rho_{mL}$                   & ${\rho_{mR}}$ & $S_{LL}$                      & $S_{LR}$                      & $S_{RL}$                      & $S_{RR}$ \\
             \hline
-            1    & RCS  & 0.4663   & 1.3609  & 0.5799                        & 0.3397        & -0.4332                      & 0.2999                        & \multicolumn{2}{|c|}{2.1532}             \\
+            1    & RCS  & 0.4663   & 1.3609  & 0.5799                        & 0.3397        & -0.4332                       & 0.2999                        & \multicolumn{2}{|c|}{2.1532}             \\
             \hline
-            2    & RNR  & 0.001894 & 0       & \multicolumn{2}{|c|}{0.02185} & -2.7483       & -0.3483                      & 0.3483                        & 2.7483                                   \\
+            2    & RNR  & 0.001894 & 0       & \multicolumn{2}{|c|}{0.02185} & -2.7483       & -0.3483                       & 0.3483                        & 2.7483                                   \\
             \hline
-            3    & RCS  & 460.8938 & 19.5975 & 0.5751                        & 5.9992        & -37.4166                     & -13.8996                      & \multicolumn{2}{|c|}{23.5175}            \\
+            3    & RCS  & 460.8938 & 19.5975 & 0.5751                        & 5.9992        & -37.4166                      & -13.8996                      & \multicolumn{2}{|c|}{23.5175}            \\
             \hline
-            4    & SCS  & 1691.6   & 8.6898  & 14.2823                       & 31.0426       & \multicolumn{2}{|c|}{0.7896} & \multicolumn{2}{|c|}{12.2508}                                            \\
+            4    & SCR  & 46.0950  & -6.1963 & 5.9924                        & 0.5751        & \multicolumn{2}{|c|}{-7.4375} & 4.3966                        & 11.8322                                  \\
             \hline
-            5    & RCS  & 460.8938 & 0       & 0.5751                        & 5.9992        & -57.0140                     & -33.4971                      & \multicolumn{2}{|c|}{3.9201}             \\
+            5    & SCS  & 1691.6   & 8.6898  & 14.2823                       & 31.0426       & \multicolumn{2}{|c|}{0.7896}  & \multicolumn{2}{|c|}{12.2508}                                            \\
+            \hline
+            6    & RCS  & 460.8938 & 0       & 0.5751                        & 5.9992        & -57.0140                      & -33.4971                      & \multicolumn{2}{|c|}{3.9201}             \\
             \hline
         \end{tabular}
     \end{center}
@@ -198,290 +202,108 @@ MSWordLineSpacingMultiple=1.5
 假如是左行激波则相等为激波的速度。
 右侧同理。
 
-以下假设间断为0处出现，末时刻在最快的波运动到$\pm0.8$的计算问题，计算CFL数取0.5。
-分别采用Roe，HLL，HLLC方法\cite{2013Riemann}计算。
+本文计算方法
+采用TVD-MUSCL方法重构，即在均匀一维网格下，有：
+
+$$
+    U_{i-1/2,R}=U_i-\frac{\inc x}{2} U_{x,i}
+$$
+$$
+    U_{i+1/2,L}=U_i+\frac{\inc x}{2} U_{x,i}
+$$
+其中坡度$U_{x,i}$是二阶重构而来，为：
+$$
+    U_{x,i} = TVD(U_{x,i-1/2},U_{x,i+1/2})
+$$
+其中有界面坡度：
+$$
+    U_{x,i-1/2}=\frac{U_i-U_{i-1}}{\inc x}
+$$
+以及TVD坡度限制函数：
+$$
+TVD(a,b)=(sign(a)+sign(b)) \frac{|ab|}{|a+b|+\epsilon_p}
+$$
+为van-Leer限制器的坡度形式。对双精度浮点$\epsilon_p$取$10^{-300}$。
+实际计算时，采用特征限制方案，即：
+$$
+    U_{x,i} = R_{i}TVD(L_{i-1/2}U_{x,i-1/2},L_{i+1/2}U_{x,i+1/2})
+$$
+界面上的特征变换$L_{i-1/2}$采用均值的Roe平均给出。
+
+这样，可给出有限体积半离散：
+$$
+\pd{U_i}{t}+\frac{F(U_{i-1/2,L},U_{i-1/2,R})-F(U_{i+1/2,L},U_{i+1/2,R})}{\inc x} = 0
+$$
+其中$F(U_L,U_R)$是界面通量，使用近似黎曼通量HLLC\cite{2013Riemann}格式。
+
+以下计算的是，设间断为0处出现，记末时刻在最快的波运动到$\pm0.8$的计算问题，计算CFL数取0.5。
 
 
-\subsection{问题1}
 
-\begin{figure}[H]
-    \centering
-    \includegraphics[width=18cm]{p1_Roe_N100.png}  %需调整
-    \caption{Roe解，100网格}
-\end{figure}
+\section{数值结果}
 
-\begin{figure}[H]
-    \centering
-    \includegraphics[width=18cm]{p1_Roe_N300.png}  %需调整
-    \caption{Roe解，300网格}
-\end{figure}
+\newcommand*{\figureOfARS}[3]{
+    \begin{figure}[H]
+        \centering
+        \includegraphics[width=18cm]{p#1_#2_N#3.png}  %需调整
+        \caption{问题#1 #3网格}
+    \end{figure}
+}
 
-可见Roe方法会出现非物理的间断，对于声速点进行熵修正后如下。
+\subsection{TVD格式结果}
 
-\begin{figure}[H]
-    \centering
-    \includegraphics[width=18cm]{p1_Roe Entropy Fixed_N100.png}  %需调整
-    \caption{Roe解，声速点熵修正，100网格}
-\end{figure}
+\figureOfARS{1}{HLLC}{100}
 
-\begin{figure}[H]
-    \centering
-    \includegraphics[width=18cm]{p1_Roe Entropy Fixed_N300.png}  %需调整
-    \caption{Roe解，声速点熵修正，300网格}
-\end{figure}
+\figureOfARS{1}{HLLC}{300}
 
-可见，声速点熵修正可以抑制Roe格式的膨胀激波问题。
+\figureOfARS{2}{HLLC}{100}
 
-HLL与HLLC计算如下：
-
-\begin{figure}[H]
-    \centering
-    \includegraphics[width=18cm]{p1_HLL_N100.png}  %需调整
-    \caption{HLL解，100网格}
-\end{figure}
-
-\begin{figure}[H]
-    \centering
-    \includegraphics[width=18cm]{p1_HLL_N300.png}  %需调整
-    \caption{HLL解，300网格}
-\end{figure}
-
-\begin{figure}[H]
-    \centering
-    \includegraphics[width=18cm]{p1_HLLC_N100.png}  %需调整
-    \caption{HLLC解，100网格}
-\end{figure}
-
-\begin{figure}[H]
-    \centering
-    \includegraphics[width=18cm]{p1_HLLC_N300.png}  %需调整
-    \caption{HLLC解，300网格}
-\end{figure}
-
-HLL与HLLC在问题1都能避免膨胀激波问题。
-
-\subsection{问题2}
-
-\begin{figure}[H]
-    \centering
-    \includegraphics[width=18cm]{p2_Roe_N100.png}  %需调整
-    \caption{Roe解，100网格}
-\end{figure}
-
-\begin{figure}[H]
-    \centering
-    \includegraphics[width=18cm]{p2_Roe_N300.png}  %需调整
-    \caption{Roe解，300网格}
-\end{figure}
-
-在计算中，Roe格式出现负压力，计算无法进行，
-需要对于低速度区进行熵修正，使其趋近于Lax通量。
-修正后计算如下：
-
-\begin{figure}[H]
-    \centering
-    \includegraphics[width=18cm]{p2_Roe Entropy Fixed V1_N100.png}  %需调整
-    \caption{Roe解，熵修正，100网格}
-\end{figure}
-
-\begin{figure}[H]
-    \centering
-    \includegraphics[width=18cm]{p2_Roe Entropy Fixed V1_N300.png}  %需调整
-    \caption{Roe解，熵修正，300网格}
-\end{figure}
-
-HLL与HLLC计算如下：
-
-\begin{figure}[H]
-    \centering
-    \includegraphics[width=18cm]{p2_HLL_N100.png}  %需调整
-    \caption{HLL解，100网格}
-\end{figure}
-
-\begin{figure}[H]
-    \centering
-    \includegraphics[width=18cm]{p2_HLL_N300.png}  %需调整
-    \caption{HLL解，300网格}
-\end{figure}
-
-\begin{figure}[H]
-    \centering
-    \includegraphics[width=18cm]{p2_HLLC_N100.png}  %需调整
-    \caption{HLLC解，100网格}
-\end{figure}
-
-\begin{figure}[H]
-    \centering
-    \includegraphics[width=18cm]{p2_HLLC_N300.png}  %需调整
-    \caption{HLLC解，300网格}
-\end{figure}
-
-可见其中HLL与HLLC都可以天然对于低密度区正确计算，不会出现负值。
-
-\subsection{问题3}
-
-不同格式计算如下：
-
-\begin{figure}[H]
-    \centering
-    \includegraphics[width=18cm]{p3_Roe_N100.png}  %需调整
-    \caption{Roe解，100网格}
-\end{figure}
-
-\begin{figure}[H]
-    \centering
-    \includegraphics[width=18cm]{p3_Roe_N300.png}  %需调整
-    \caption{Roe解，300网格}
-\end{figure}
-
-\begin{figure}[H]
-    \centering
-    \includegraphics[width=18cm]{p3_HLL_N100.png}  %需调整
-    \caption{HLL解，100网格}
-\end{figure}
-
-\begin{figure}[H]
-    \centering
-    \includegraphics[width=18cm]{p3_HLL_N300.png}  %需调整
-    \caption{HLL解，300网格}
-\end{figure}
-
-\begin{figure}[H]
-    \centering
-    \includegraphics[width=18cm]{p3_HLLC_N100.png}  %需调整
-    \caption{HLLC解，100网格}
-\end{figure}
-
-\begin{figure}[H]
-    \centering
-    \includegraphics[width=18cm]{p3_HLLC_N300.png}  %需调整
-    \caption{HLLC解，300网格}
-\end{figure}
-
-不同通量的差异不是很大。
-
-\subsection{问题4}
-
-不同格式计算如下：
-
-\begin{figure}[H]
-    \centering
-    \includegraphics[width=18cm]{p4_Roe_N100.png}  %需调整
-    \caption{Roe解，100网格}
-\end{figure}
-
-\begin{figure}[H]
-    \centering
-    \includegraphics[width=18cm]{p4_Roe_N300.png}  %需调整
-    \caption{Roe解，300网格}
-\end{figure}
-
-\begin{figure}[H]
-    \centering
-    \includegraphics[width=18cm]{p4_HLL_N100.png}  %需调整
-    \caption{HLL解，100网格}
-\end{figure}
-
-\begin{figure}[H]
-    \centering
-    \includegraphics[width=18cm]{p4_HLL_N300.png}  %需调整
-    \caption{HLL解，300网格}
-\end{figure}
-
-\begin{figure}[H]
-    \centering
-    \includegraphics[width=18cm]{p4_HLLC_N100.png}  %需调整
-    \caption{HLLC解，100网格}
-\end{figure}
-
-\begin{figure}[H]
-    \centering
-    \includegraphics[width=18cm]{p4_HLLC_N300.png}  %需调整
-    \caption{HLLC解，300网格}
-\end{figure}
-
-本问题中，Roe通量只有在CFL数降低为0.2时才可以保持稳定计算。
-计算结果差异不是很大。
+\figureOfARS{2}{HLLC}{300}
 
 
-\subsection{问题5}
+\figureOfARS{3}{HLLC}{100}
 
-不同格式计算如下：
+\figureOfARS{3}{HLLC}{300}
 
-\begin{figure}[H]
-    \centering
-    \includegraphics[width=18cm]{p5_Roe_N100.png}  %需调整
-    \caption{Roe解，100网格}
-\end{figure}
 
-\begin{figure}[H]
-    \centering
-    \includegraphics[width=18cm]{p5_Roe_N300.png}  %需调整
-    \caption{Roe解，300网格}
-\end{figure}
+\figureOfARS{4}{HLLC}{100}
 
-\begin{figure}[H]
-    \centering
-    \includegraphics[width=18cm]{p5_HLL_N100.png}  %需调整
-    \caption{HLL解，100网格}
-\end{figure}
+\figureOfARS{4}{HLLC}{300}
 
-\begin{figure}[H]
-    \centering
-    \includegraphics[width=18cm]{p5_HLL_N300.png}  %需调整
-    \caption{HLL解，300网格}
-\end{figure}
 
-\begin{figure}[H]
-    \centering
-    \includegraphics[width=18cm]{p5_HLLC_N100.png}  %需调整
-    \caption{HLLC解，100网格}
-\end{figure}
+\figureOfARS{5}{HLLC}{100}
 
-\begin{figure}[H]
-    \centering
-    \includegraphics[width=18cm]{p5_HLLC_N300.png}  %需调整
-    \caption{HLLC解，300网格}
-\end{figure}
+\figureOfARS{5}{HLLC}{300}
 
-问题5包含一个静止接触间断，可见HLLC和Roe格式在稀疏网格
-上对静止接触间断的分辨好于HLL格式。
 
-\subsection{汇总}
+\figureOfARS{6}{HLLC}{100}
 
-为了方便对比，给出100网格下的不同算例计算结果：
+\figureOfARS{6}{HLLC}{300}
 
-\begin{figure}[H]
-    \centering
-    \includegraphics[width=18cm]{p1_SUM_N100.png}  %需调整
-    \caption{问题1不同格式对比，100网格}
-\end{figure}
+以上的不同结果中，加密网格后都与解析解匹配更好；
+在强度较大的激波、膨胀波附近存在一定非单调性。
 
-\begin{figure}[H]
-    \centering
-    \includegraphics[width=18cm]{p2_SUM_N100.png}  %需调整
-    \caption{问题2不同格式对比，100网格}
-\end{figure}
 
-\begin{figure}[H]
-    \centering
-    \includegraphics[width=18cm]{p3_SUM_N100.png}  %需调整
-    \caption{问题3不同格式对比，100网格}
-\end{figure}
+\subsection{TVD与一阶的对比}
+为了更好体现二阶格式与一阶格式的差别（零阶重构），
+在100网格上对比两者。
 
-\begin{figure}[H]
-    \centering
-    \includegraphics[width=18cm]{p4_SUM_N100.png}  %需调整
-    \caption{问题4不同格式对比，100网格}
-\end{figure}
+\figureOfARS{1}{SUM}{100}
+\figureOfARS{2}{SUM}{100}
+\figureOfARS{3}{SUM}{100}
+\figureOfARS{4}{SUM}{100}
+\figureOfARS{5}{SUM}{100}
+\figureOfARS{6}{SUM}{100}
 
-\begin{figure}[H]
-    \centering
-    \includegraphics[width=18cm]{p5_SUM_N100.png}  %需调整
-    \caption{问题5不同格式对比，100网格}
-\end{figure}
+其中，问题1的对比可见，在跨越0点的膨胀波附近，一阶格式有明显的残留的间断，而
+TVD格式与光滑解匹配很好。问题3、4、5中，可见对接触间断和激波间的峰值预测上，
+TVD明显好于一阶格式；所有的运动激波附近，TVD的解对激波的分辨宽度都略小于
+一阶格式。
 
-总体而言，接触间断和激波附近，HLL最差，HLLC最好，Roe与HLLC更加接近。
+强激波或者膨胀波附近非单调部分，TVD的预测比一阶格式更好，说明这些非单调解是由于更大的数值耗散造成的。
+
+问题2中，网格加密后，中央低密度压力区的速度预测反而变差，说明低密度区的计算需要对黎曼求解器和重构过程进一步改进。
+
 
 
 本文结果与书\cite{2013Riemann}保持相符。
