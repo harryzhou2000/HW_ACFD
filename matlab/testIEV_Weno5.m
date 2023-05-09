@@ -1,11 +1,11 @@
 
 see = 50;
-sup = 16;
+sup = 4;
 Nx = 10 * sup;
 Ny = 10 * sup;
 C = 0.1;
 Tmax = 2;
-G.p = 2;
+G.p = 1e200;
 G.eps = 1e-6; 
 G.mapping = 1;
 % eps 10* 2 4 8 16 32 

@@ -71,8 +71,8 @@ title(sprintf("WENO5 \\epsilon = %.e",eps));
 
 function dudt = frhs(u, G, M)
     
-    [uLe, uRi] = F_interpi_weno5(u, G.eps, 2, 0);
-    [uLo, uUp] = F_interpi_weno5(permute(u,[2,1,3]), G.eps, 2, 0);
+    [uLe, uRi] = F_interpi_weno5(u, G.eps, 2e100, 0);
+    [uLo, uUp] = F_interpi_weno5(permute(u,[2,1,3]), G.eps, 2e100, 0);
     uLo = permute(uLo, [2,1,3]);
     uUp = permute(uUp, [2,1,3]);
     

@@ -6,7 +6,7 @@
 
 
 
-\title{{\bfseries\rmfamily\Huge{高等计算流体力学\hspace{1em}\\第9次作业}}}
+\title{{\bfseries\rmfamily\Huge{高等计算流体力学\hspace{1em}\\第10次作业}}}
 \author{周涵宇 2022310984}
 \date{}
 
@@ -142,187 +142,87 @@ MSWordLineSpacingMultiple=1.5
 
 \maketitle
 
-\section{计算问题与计算格式}
+\section{ENO3有限体积方法测试}
 
-根据Toro的书\cite{2013Riemann}有关章节，计算以下1D欧拉方程Riemann问题，
+ENO3\cite{shu2020essentially}首先确定$i$单元选用的模板位置。
+方便起见在均匀网格上，已知均值$\overline{u}_j$
+设原函数为$V_{i+1/2} = \inc x \sum_{j=0}^i{\overline{u}_j}$，则根据文献，
+首先直接知道一阶均差为
+$$
+V[i-1/2,1]=\overline{u}_i
+$$
+那么左侧方向二阶均差为
+$$
+V[i-3/2,2]=\frac{1}{2\inc x}(\overline{u}_i-\overline{u}_{i-1})
+$$
+右侧方向二阶均差为
+$$
+V[i-1/2,2]=\frac{1}{2\inc x}(\overline{u}_{i+1}-\overline{u}_{i})
+$$
+进一步，则中央三单元模板的三阶均差为
+$$
+V[i-3/2,3]=\frac{1}{6\inc x^2}(\overline{u}_{i+1}+\overline{u}_{i-1}-2\overline{u}_i)
+$$
+则对$i$进行平移可得$\{i-2,i-1,i\}$和$\{i,i+1,i+2\}$的三阶均差。
+依据上述公式可先计算二阶均差，根据其绝对大小，选用较小的一侧
+决定采用$\{i-1,i\},\{i,i+1\}$之一，
+再在二单元模板两侧根据三阶均差的绝对大小选取模板。
+确定三单元模板的位置后，即根据有限体积方法插值得到界面值$u_{i-1/2,R},u_{i+1/2,L}$。
 
-\begin{table}[H]
-    % \tiny
-    \begin{center}
-        \caption{黎曼问题设置}
-        \begin{tabular}{|c|c|c|c|c|c|c|}
-            \hline
-            问题 & $\rho_L$ & $V_L$     & $p_L$   & $\rho_L$ & $V_L$     & $p_L$   \\
-            \hline
-            1    & 1        & 0.75      & 1       & 0.125    & 0         & 0.1     \\
-            \hline
-            2    & 1        & -2        & 0.4     & 1        & 2         & 0.4     \\
-            \hline
-            3    & 1        & 0         & 1000    & 1        & 0         & 0.01    \\
-            \hline
-            4    & 1        & 0         & 0.01    & 1        & 0         & 100     \\
-            \hline
-            5    & 5.99924  & 19.5975   & 460.894 & 5.99242  & -6.19633  & 49.0950 \\
-            \hline
-            6    & 1        & -19.59745 & 1000    & 1        & -19.59745 & 0.01    \\
-            \hline
-        \end{tabular}
-    \end{center}
-\end{table}
+由于求解的是标量线性对流，则容易给出迎风通量：
+$$
+f_{i-1/2} = a u_{i-1/2,L}
+$$
+半离散格式：
+$$
+\frac{d \overline{u}_i }{dt} = \frac{f_{i-1/2} - f_{i+1/2}}{\inc x}
+$$
+记为
+$$
+\frac{d \overline{u}}{dt} = R(\overline{u})
+$$
 
-根据以上过程解得结果为：
-
-\begin{table}[H]
-    % \footnotesize
-    \small
-    \begin{center}
-        \caption{精确解}
-        \begin{tabular}{|c|c|c|c|c|c|c|c|c|c|}
-            \hline
-            问题 & 类型 & $p_m$    & $V_m$   & $\rho_{mL}$                   & ${\rho_{mR}}$ & $S_{LL}$                      & $S_{LR}$                      & $S_{RL}$                      & $S_{RR}$ \\
-            \hline
-            1    & RCS  & 0.4663   & 1.3609  & 0.5799                        & 0.3397        & -0.4332                       & 0.2999                        & \multicolumn{2}{|c|}{2.1532}             \\
-            \hline
-            2    & RNR  & 0.001894 & 0       & \multicolumn{2}{|c|}{0.02185} & -2.7483       & -0.3483                       & 0.3483                        & 2.7483                                   \\
-            \hline
-            3    & RCS  & 460.8938 & 19.5975 & 0.5751                        & 5.9992        & -37.4166                      & -13.8996                      & \multicolumn{2}{|c|}{23.5175}            \\
-            \hline
-            4    & SCR  & 46.0950  & -6.1963 & 5.9924                        & 0.5751        & \multicolumn{2}{|c|}{-7.4375} & 4.3966                        & 11.8322                                  \\
-            \hline
-            5    & SCS  & 1691.6   & 8.6898  & 14.2823                       & 31.0426       & \multicolumn{2}{|c|}{0.7896}  & \multicolumn{2}{|c|}{12.2508}                                            \\
-            \hline
-            6    & RCS  & 460.8938 & 0       & 0.5751                        & 5.9992        & -57.0140                      & -33.4971                      & \multicolumn{2}{|c|}{3.9201}             \\
-            \hline
-        \end{tabular}
-    \end{center}
-\end{table}
-
-其中$S_{LR},S_{LL}$指的是左侧波的速度，
-假如是中心膨胀波则是膨胀波两侧的速度；
-假如是左行激波则相等为激波的速度。
-右侧同理。
-
-本文计算方法
-采用TVD-MUSCL方法重构，即在均匀一维网格下，有：
-
-$$
-    U_{i-1/2,R}=U_i-\frac{\inc x}{2} U_{x,i}
-$$
-$$
-    U_{i+1/2,L}=U_i+\frac{\inc x}{2} U_{x,i}
-$$
-其中坡度$U_{x,i}$是二阶重构而来，为：
-$$
-    U_{x,i} = TVD(U_{x,i-1/2},U_{x,i+1/2})
-$$
-其中有界面坡度：
-$$
-    U_{x,i-1/2}=\frac{U_i-U_{i-1}}{\inc x}
-$$
-以及TVD坡度限制函数：
-$$
-TVD(a,b)=(sign(a)+sign(b)) \frac{|ab|}{|a+b|+\epsilon_p}
-$$
-为van-Leer限制器的坡度形式。对双精度浮点$\epsilon_p$取$10^{-300}$。
-实际计算时，采用特征限制方案，即：
-$$
-    U_{x,i} = R_{i}TVD(L_{i-1/2}U_{x,i-1/2},L_{i+1/2}U_{x,i+1/2})
-$$
-界面上的特征变换$L_{i-1/2}$采用均值的Roe平均给出。
-
-这样，可给出有限体积半离散：
-$$
-\pd{U_i}{t}+\frac{F(U_{i-1/2,L},U_{i-1/2,R})-F(U_{i+1/2,L},U_{i+1/2,R})}{\inc x} = 0
-$$
-其中$F(U_L,U_R)$是界面通量，使用近似黎曼通量HLLC\cite{2013Riemann}格式。
-
-时间推进采用显式3步3阶TVD Runge-Kutta\cite{gottlieb1998total}，
-记$\pd{u}{t}=L(u)$为半离散格式，则时间推进为：
-
+采用三阶TVD-RK方法\cite{gottlieb1998total}时间推进：
 $$
 \begin{aligned}
-    u^{(1)} & = u^n+\inc t L(u^n) \\
-    u^{(2)} & = \frac{3}{4}u^n + \frac{1}{4}u^{(1)} + \frac{1}{4}\inc t L(u^{(1)}) \\
-    u^{n+1} & = \frac{1}{3}u^n + \frac{2}{3}u^{(2)} + \frac{2}{3}\inc t L(u^{(2)}) \\
+    \overline{u}^{(1)} &= \overline{u}^n + {\inc t} R(\overline{u}^n)\\
+    \overline{u}^{(2)} &= \frac{3}{4}\overline{u}^n +\frac{1}{4}\overline{u}^{(1)} + \frac{\inc t}{4} R(\overline{u}^{(1)})\\
+    \overline{u}^{n+1} &= \frac{1}{3}\overline{u}^n +\frac{2}{3}\overline{u}^{(2)} + \frac{2\inc t}{3} R(\overline{u}^{(2)})\\
 \end{aligned}
 $$
 
+计算域为$[-0.5,0.5]$，100单元，采用初值为$|x|<0.25$时$u=1$其余为0的
+方波，$CFL=0.5$不同时刻结果如下。
 
-以算例1-6分别对应问题1-6，
-计算的是，设间断为0处出现，设末时刻在最快的波运动到$\pm0.8$的计算问题，计算CFL数取0.5。
-
-
-
-
-
-\section{数值结果}
-
-\newcommand*{\figureOfARS}[3]{
-    \begin{figure}[H]
+\begin{figure}[H]
+    \begin{minipage}[c]{0.45\linewidth}  %需调整
         \centering
-        \includegraphics[width=18cm]{p#1_#2_N#3.png}  %需调整
-        \caption{问题#1 #3网格}
-    \end{figure}
-}
+        \includegraphics[width=8cm]{T0D1.png}  %需调整
+        \caption{$t=0.1$ ENO3 线性对流结果}
+        \label{fig:a}
+    \end{minipage}
+    \hfill %弹性长度
+    \begin{minipage}[c]{0.45\linewidth}  %需调整
+        \centering
+        \includegraphics[width=8cm]{T1D0.png}  %需调整
+        \caption{$t=1$ ENO3 线性对流结果}
+        \label{fig:b}
+    \end{minipage}
+\end{figure}
 
-\subsection{TVD格式结果}
+\begin{figure}[H]
+        \centering
+        \includegraphics[width=8cm]{T10.png}  %需调整
+        \caption{$t=10$ ENO3 线性对流结果}
+        \label{fig:c}
+\end{figure}
 
-\figureOfARS{1}{HLLC}{100}
+计算结果可见，ENO方法虽然采用二次多项式插值，有三阶线性精度，
+但是其在间断附近依然保持无振荡。间断附近，ENO3将尖锐的波形抹平，
+并且随着计算时间增加，间断抹平更加严重，可见ENO方法在间断附近
+有特定的非线性数值耗散。
+同时，间断附近，ENO格式基本保证单调性，这与文献中TVB性质或许有一定关系。
 
-\figureOfARS{1}{HLLC}{300}
-
-\figureOfARS{2}{HLLC}{100}
-
-\figureOfARS{2}{HLLC}{300}
-
-
-\figureOfARS{3}{HLLC}{100}
-
-\figureOfARS{3}{HLLC}{300}
-
-
-\figureOfARS{4}{HLLC}{100}
-
-\figureOfARS{4}{HLLC}{300}
-
-
-\figureOfARS{5}{HLLC}{100}
-
-\figureOfARS{5}{HLLC}{300}
-
-
-\figureOfARS{6}{HLLC}{100}
-
-\figureOfARS{6}{HLLC}{300}
-
-以上的不同结果中，加密网格后都与解析解匹配更好；
-在强度较大的激波、膨胀波附近存在一定非单调性。
-
-
-\subsection{TVD与一阶的对比}
-为了更好体现二阶格式与一阶格式的差别（零阶重构），
-在100网格上对比两者。
-
-\figureOfARS{1}{SUM}{100}
-\figureOfARS{2}{SUM}{100}
-\figureOfARS{3}{SUM}{100}
-\figureOfARS{4}{SUM}{100}
-\figureOfARS{5}{SUM}{100}
-\figureOfARS{6}{SUM}{100}
-
-其中，问题1的对比可见，在跨越0点的膨胀波附近，一阶格式有明显的残留的间断，而
-TVD格式与光滑解匹配很好。问题3、4、5中，可见对接触间断和激波间的峰值预测上，
-TVD明显好于一阶格式；所有的运动激波附近，TVD的解对激波的分辨宽度都略小于
-一阶格式。
-
-强激波或者膨胀波附近非单调部分，问题3、4中，TVD的预测比一阶格式更好，
-说明这些非单调解是由于更大的数值耗散造成的。
-
-问题2中，网格加密后，中央低密度压力区的速度预测反而变差，说明低密度区的计算需要对黎曼求解器和重构过程进一步改进。
-
-
-
-本文结果与书\cite{2013Riemann}保持相符。
 
 \bibliography{refs}{}
 \bibliographystyle{unsrt}

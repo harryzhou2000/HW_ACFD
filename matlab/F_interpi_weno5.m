@@ -31,16 +31,54 @@ if(eps < 1e100)
     betaR1 = 13/12*(f(im1 ,:,:) - 2 * f(i0  ,:,:) + f(ip1 ,:,:)).^2 + 1/4*(f(ip1 ,:,:) - f(im1 ,:,:)).^2;
     betaR2 = 13/12*(f(i0  ,:,:) - 2 * f(ip1 ,:,:) + f(ip2 ,:,:)).^2 + 1/4*(f(ip2 ,:,:) - 4 * f(ip1 ,:,:) + 3 * f(i0  ,:,:)).^2;
     
-    betaL0 = 13/12*(f(ip2 ,:,:) - 2 * f(ip1 ,:,:) + f(i0  ,:,:)).^2 + 1/4*(f(ip2 ,:,:) - 4 * f(ip1 ,:,:) + 3 * f(i0  ,:,:)).^2;
-    betaL1 = 13/12*(f(ip1 ,:,:) - 2 * f(i0  ,:,:) + f(im1 ,:,:)).^2 + 1/4*(f(im1 ,:,:) - f(ip1 ,:,:)).^2;
-    betaL2 = 13/12*(f(i0  ,:,:) - 2 * f(im1 ,:,:) + f(im2 ,:,:)).^2 + 1/4*(f(im2 ,:,:) - 4 * f(im1 ,:,:) + 3 * f(i0  ,:,:)).^2;
+    %     betaL0 = 13/12*(f(ip2 ,:,:) - 2 * f(ip1 ,:,:) + f(i0  ,:,:)).^2 + 1/4*(f(ip2 ,:,:) - 4 * f(ip1 ,:,:) + 3 * f(i0  ,:,:)).^2;
+    %     betaL1 = 13/12*(f(ip1 ,:,:) - 2 * f(i0  ,:,:) + f(im1 ,:,:)).^2 + 1/4*(f(im1 ,:,:) - f(ip1 ,:,:)).^2;
+    %     betaL2 = 13/12*(f(i0  ,:,:) - 2 * f(im1 ,:,:) + f(im2 ,:,:)).^2 + 1/4*(f(im2 ,:,:) - 4 * f(im1 ,:,:) + 3 * f(i0  ,:,:)).^2;
+    betaL0 = betaR2;
+    betaL1 = betaR1;
+    betaL2 = betaR0;
     
-    alphaR0 = 1/10 ./ (eps + betaR0).^p;
-    alphaR1 = 6/10 ./ (eps + betaR1).^p;
-    alphaR2 = 3/10 ./ (eps + betaR2).^p;
-    alphaL0 = 1/10 ./ (eps + betaL0).^p;
-    alphaL1 = 6/10 ./ (eps + betaL1).^p;
-    alphaL2 = 3/10 ./ (eps + betaL2).^p;
+    if(p < 1e100)
+        alphaR0 = 1/10 ./ (eps + betaR0).^p;
+        alphaR1 = 6/10 ./ (eps + betaR1).^p;
+        alphaR2 = 3/10 ./ (eps + betaR2).^p;
+        alphaL0 = 1/10 ./ (eps + betaL0).^p;
+        alphaL1 = 6/10 ./ (eps + betaL1).^p;
+        alphaL2 = 3/10 ./ (eps + betaL2).^p;
+    else
+        %%%%%%%%%%%%%%%%%%%%%%%%%%%%
+        %         alphaR0 = double(betaR0 <= betaR1 & betaR0 <= betaR2);
+        %         alphaR1 = double((betaR1 <= betaR0 & betaR1 <= betaR2) & (~alphaR0));
+        %         alphaR2 = double((betaR2 <= betaR0 & betaR2 <= betaR1) & (~alphaR0) & (~alphaR1));
+        
+        %%%%%%%%%%%%%%%%%%%%%%%%%%%% %ENO3 vanilla
+        
+        diffL = abs(f(im1 ,:,:) - f(i0  ,:,:));
+        diffR = abs(f(ip1 ,:,:) - f(i0  ,:,:));
+        useL = diffL < diffR;
+        diffLL = abs(f(im2 ,:,:) + f(i0 ,:,:) - 2 * f(im1 ,:,:));
+        diffRR = abs(f(ip2 ,:,:) + f(i0 ,:,:) - 2 * f(ip1 ,:,:));
+        diffMM = abs(f(ip1 ,:,:) + f(im1 ,:,:) - 2 * f(i0  ,:,:));
+        
+        useLL =  useL  & (diffLL <  diffMM);
+        useMM = (useL  & (diffLL >= diffMM)) | ((~useL) & (diffRR >= diffMM));
+        useRR =(~useL) & (diffRR <  diffMM);
+        
+        alphaR0 = double(useLL);
+        alphaR1 = double(useMM);
+        alphaR2 = double(useRR);
+        
+        %%%%%%%%%%%%%%%%%%%%%%%%%%%%
+        
+        alphaL0 = alphaR2;
+        alphaL1 = alphaR1;
+        alphaL2 = alphaR0;
+        
+        if any(alphaL0 + alphaL1 + alphaL2 - 1)
+            error('bad eno');
+        end
+        
+    end
 else
     alphaR0 = 1/10;
     alphaR1 = 6/10;
@@ -84,9 +122,9 @@ end
 fR = omegaR0 .* fR0 + omegaR1 .* fR1 + omegaR2 .*fR2;
 fL = omegaL0 .* fL0 + omegaL1 .* fL1 + omegaL2 .*fL2;
 
-function am = Henrick_mapping(w,wi)
-    am = w.*(wi + wi^2 - 3*wi*w+w.^2)./(wi^2 +w * (1-2*wi));
-end
+    function am = Henrick_mapping(w,wi)
+        am = w.*(wi + wi^2 - 3*wi*w+w.^2)./(wi^2 +w * (1-2*wi));
+    end
 
 end
 
