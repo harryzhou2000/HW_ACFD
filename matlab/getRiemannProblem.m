@@ -15,6 +15,8 @@ switch pnum
         rhoL = 5.99924; uL = 19.5975;   pL = 460.894; rhoR = 5.99242; uR = -6.19633; pR = 46.0950;
     case 6
         rhoL = 1;       uL = -19.59745; pL = 1000;    rhoR = 1    ;   uR = -19.59745;pR = 0.01;   
+    case 7
+        rhoL = 1;       uL = 0;         pL =1;        rhoR = 0.125;   uR = 0;       pR = 0.1;
     otherwise
         error(' ');
 end

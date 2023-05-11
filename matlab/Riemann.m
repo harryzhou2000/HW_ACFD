@@ -21,9 +21,17 @@ UR = f_prim2cons(rhoR,uR,pR,gamma,1);
 
 vMax = max(abs(uL), abs(uR)) + max(aL, aR);
 vMax = max(abs([D.sLL, D.sLR, D.sRR, D.sRL]));
+
 tMax = 0.8/vMax;
+if(pnum == 7)
+   tMax = 0.24; 
+end
+
 
 xs = linspace(-1,1,N+1);
+if pnum == 7
+xs = linspace(-0.5,0.5,N+1);
+end
 ts = linspace(0,tMax,N+1);
 
 xEnd = xs;
