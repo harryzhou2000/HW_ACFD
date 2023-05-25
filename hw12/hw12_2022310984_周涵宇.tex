@@ -1,0 +1,548 @@
+%!TEX program = xelatex
+\documentclass[UTF8,zihao=5]{ctexart} %ctex包的article
+
+
+\usepackage[hidelinks]{hyperref}%超链接，自动加到目录里面
+
+
+
+\title{{\bfseries\rmfamily\Huge{高等计算流体力学\hspace{1em}\\第12次作业}}}
+\author{周涵宇 2022310984}
+\date{}
+
+\usepackage[a4paper]{geometry}
+\geometry{left=0.75in,right=0.75in,top=1in,bottom=1in}%纸张大小和页边距
+
+\usepackage[
+UseMSWordMultipleLineSpacing,
+MSWordLineSpacingMultiple=1.5
+]{zhlineskip}%office风格的行间距
+
+\usepackage{fontspec}
+\setmainfont{Times New Roman}
+\setsansfont{Source Sans Pro}
+\setmonofont{Latin Modern Mono}
+\setCJKmainfont{SimSun}[AutoFakeBold=true]
+% \setCJKmainfont{仿宋}[AutoFakeBold=true]
+\setCJKsansfont{黑体}[AutoFakeBold=true]
+\setCJKmonofont{DengXian}[AutoFakeBold=true]
+
+\setCJKfamilyfont{kaiti}{楷体}
+\newfontfamily\CM{Cambria Math}
+
+
+% \usepackage{indentfirst} %不工作 怎样调整ctex的段首缩进大小呢
+
+\usepackage{fancyhdr}
+\pagestyle{fancy}
+\lhead{}
+\chead{}
+\rhead{}
+\lfoot{}
+\cfoot{\thepage}
+\rfoot{}
+\renewcommand{\headrulewidth}{1pt} %改为0pt即可去掉页眉下面的横线
+\renewcommand{\footrulewidth}{1pt} %改为0pt即可去掉页脚上面的横线
+\setcounter{page}{1}
+
+
+% \usepackage{bm}
+
+\usepackage{amsmath,amsfonts}
+\usepackage{array}
+\usepackage{enumitem}
+\usepackage{unicode-math}
+
+% \usepackage{titlesec} % it subverts the ctex titles
+\usepackage{titletoc}
+
+
+% titles in toc:
+\titlecontents{section}
+              [2cm]
+              {\sffamily\zihao{5}\mdseries}%
+              {\contentslabel{3em}}%
+              {}%
+              {\titlerule*[0.5pc]{-}\contentspage\hspace*{1cm}}
+
+\titlecontents{subsection}
+              [3cm]
+              {\rmfamily\mdseries\zihao{5}}%
+              {\contentslabel{3em}}%
+              {}%
+              {\titlerule*[0.5pc]{-}\contentspage\hspace*{1cm}}
+
+\titlecontents{subsubsection}
+              [4cm]
+              {\rmfamily\mdseries\zihao{5}}%
+              {\contentslabel{3em}}%
+              {}%
+              {\titlerule*[0.5pc]{-}\contentspage\hspace*{1cm}}
+\renewcommand*\contentsname{\hfill \sffamily\mdseries 目录 \hfill}
+
+\ctexset{
+    section={   
+        % name={前面,后面},
+        number={\arabic{section}.},
+        format=\sffamily\raggedright\zihao{4}\mdseries,
+        indent= {0em},
+        aftername = \hspace{0.5em},
+        beforeskip=1ex,
+        afterskip=1ex
+    },
+    subsection={   
+        % name={另一个前面,另一个后面},
+        number={\arabic{section}.\arabic{subsection}.}, %如果只用一个数字而非1.1
+        format=\rmfamily\raggedright\mdseries\zihao{5},%正体字体，不加粗，main字体，五号字
+        indent = {2em}, %缩进
+        aftername = \hspace{0.5em},
+        beforeskip=1ex,
+        afterskip=1ex
+    },
+    subsubsection={   
+        % name={另一个前面,另一个后面},
+        number={\arabic{section}.\arabic{subsection}.\arabic{subsubsection}.}, %默认的 1.1.1
+        format=\rmfamily\raggedright\mdseries\zihao{5},%无衬线字体，加粗，sans字体，五号字
+        indent = {2em}, %缩进
+        aftername = \hspace{0.5em},  %名字和标题间插入字符（此处是空白）
+        beforeskip=1ex, %空行
+        afterskip=1ex
+    }
+}
+
+\usepackage{float}
+\usepackage{graphicx}
+\usepackage{multirow}
+\usepackage{multicol}
+\usepackage{caption}
+\usepackage{subcaption}
+\usepackage{cite}
+
+
+%part、section、subsection、subsubsection、paragraph、subparagraph
+\newcommand{\bm}[1]{{\mathbf{#1}}}
+\newcommand{\trans}[0]{^\mathrm{T}}
+\newcommand{\tran}[1]{#1^\mathrm{T}}
+\newcommand{\hermi}[0]{^\mathrm{H}}
+\newcommand{\conj}[1]{\overline{#1}}
+\newcommand*{\av}[1]{\left\langle{#1}\right\rangle}
+\newcommand*{\avld}[1]{\frac{\overline{D}#1}{Dt}}
+\newcommand*{\pd}[2]{\frac{\partial #1}{\partial #2}}
+\newcommand*{\pdcd}[3]{\frac{\partial^2 #1}{\partial #2 \partial #3}}
+\newcommand*{\inc}[0]{{\Delta}}
+
+\newcommand*{\uu}[0]{\bm{u}}
+\newcommand*{\vv}[0]{\bm{v}}
+\newcommand*{\g}[0]{\bm{g}}
+\newcommand*{\nb}[0]{{\nabla}}
+
+\newcommand*{\mean}[1]{{#1}}
+
+
+
+\begin{document}
+
+\maketitle
+
+\section{WENO5有限差分方法测试}
+
+首先，考虑节点值$\mean{u}_i$已知，则WENO5插值方式有：
+
+WENO5一维情况下，即为在模板$S_2=\{i-2,i-1,i\}$,$S_1=\{i-1,i,i+1\}$,$S_0=\{i,i+1,i+2\}$
+计算二次多项式重构后，根据WENO非线性权将多项式组合即可。
+均匀网格下，模板上线性重构系数见\cite{cockburn1998essentially}。
+非线性权方面，本文采用原始的WENO5方案：
+$$
+    \omega_r = \frac{\alpha_r}{\sum_r{\alpha_r}},\ \ \alpha_r = \frac{d_r}{(\epsilon+\beta_r)^2}
+$$
+其中$\epsilon$取$10^{-6}$。
+间断探测器采用原始WENO方案\cite{cockburn1998essentially}：
+$$
+    \begin{aligned}
+        \beta_0 & =
+        \frac{13}{12}(\mean{u}_{i}-2\mean{u}_{i+1}+\mean{u}_{i+2})^2 +
+        \frac{1}{4}(3\mean{u}_{i}-4\mean{u}_{i+1}+\mean{u}_{i+2})^2 \\
+        \beta_0 & =
+        \frac{13}{12}(\mean{u}_{i-1}-2\mean{u}_{i}+\mean{u}_{i+1})^2 +
+        \frac{1}{4}(\mean{u}_{i-1}-\mean{u}_{i+1})^2                \\
+        \beta_2 & =
+        \frac{13}{12}(\mean{u}_{i}-2\mean{u}_{i-1}+\mean{u}_{i-2})^2 +
+        \frac{1}{4}(3\mean{u}_{i}-4\mean{u}_{i-1}+\mean{u}_{i-2})^2 \\
+    \end{aligned}
+$$
+均匀网格上，重构$u_{i+1/2}$的理想线性权为
+$$
+    d_0 = \frac{3}{10},\ d_1=\frac{6}{10},\ d_2 = \frac{1}{10}
+$$
+
+求解欧拉方程（量热完全气体，$\gamma=1.4$）时，
+考虑有限差分Roe格式离散。首先在每个半节点计算Roe平均：
+$$
+\tilde{U}_{i-1/2} = RoeAverage(U_{i-1},U_i)
+$$
+随后根据Roe平均给出无粘通量Jacobian：
+$\tilde{A}$以及特征矩阵$\tilde{L},\tilde{R}$。
+这样，对于$i-1/2$半节点，需要先将模板上守恒量变为特征量：
+$\tilde{L}U_i$，随后在$i$节点中心的模板上插值得到
+$(\tilde{L}U)_{i-1/2,R}$，在$i-1$节点中心的模板上插值得到
+$(\tilde{L}U)_{i-1/2,L}$。
+随后可根据特征量根据Roe格式的迎风方式计算通量：
+$$
+F_{i-1/2} =\frac{1}{2} \left[F(\tilde{R}(\tilde{L}U)_{i-1/2,R})
++F(\tilde{R}(\tilde{L}U)_{i-1/2,L})
+-\tilde{R} |\tilde{\Lambda}| ((\tilde{L}U)_{i-1/2,R}-(\tilde{L}U)_{i-1/2,L})
+\right]
+$$
+其中$F(U)$是精确通量函数。
+
+这样，就得到守恒型半离散有限差分格式：
+$$
+\pd{U_i}{t} = \frac{1}{\inc x} (F_{i-1/2} - F_{i+1/2})
+$$
+
+
+采用三阶TVD-RK方法\cite{gottlieb1998total}时间推进：
+$$
+    \begin{aligned}
+        \overline{u}^{(1)} & = \overline{u}^n + {\inc t} R(\overline{u}^n)                                                        \\
+        \overline{u}^{(2)} & = \frac{3}{4}\overline{u}^n +\frac{1}{4}\overline{u}^{(1)} + \frac{\inc t}{4} R(\overline{u}^{(1)})  \\
+        \overline{u}^{n+1} & = \frac{1}{3}\overline{u}^n +\frac{2}{3}\overline{u}^{(2)} + \frac{2\inc t}{3} R(\overline{u}^{(2)}) \\
+    \end{aligned}
+$$
+
+\subsection{激波管算例}
+
+计算一维Riemann问题，初始条件为：
+$$
+    \left\{
+    \begin{array}{ll}
+        \{\rho,u,p\} = \{1,0,1\},       & x < 0    \\
+        \{\rho,u,p\} = \{0.125,0,0.1\}, & x \geq 0 \\
+    \end{array}
+    \right.
+$$
+采用计算域$[-0.5,0.5]$，CFL数$0.5$，计算$t=0.24$不同网格的结果如下。
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=16cm]{p7_Roe_N50.png}  %需调整
+    \caption{$50$网格WENO5激波管结果}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=16cm]{p7_Roe_N100.png}  %需调整
+    \caption{$100$网格WENO5激波管结果}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=16cm]{p7_Roe_N200.png}  %需调整
+    \caption{$200$网格WENO5激波管结果}
+\end{figure}
+
+图中可见，激波管为黎曼问题$RCS$结构，不同的网格数下都基本无振荡。
+不同网格数下，激波都有约2单元宽度，接触间断都约有4单元宽度。
+因此，空间上，随着网格加密，间断的尺度与网格尺度是同一量级减小的。
+
+\subsection{Shu-Osher算例}
+
+计算一维Shu-Osher问题，初始条件为：
+$$
+    \left\{
+    \begin{array}{ll}
+        \{\rho,u,p\} = \{3.857,2.629,10.333\},   & x < 1    \\
+        \{\rho,u,p\} = \{1+0.2\sin(5(x-5))0,1\}, & x \geq 1 \\
+    \end{array}
+    \right.
+$$
+采用计算域$[0,10]$，CFL数$0.5$，计算$t=1.8$。
+计算中同时与二阶TVD有限差分对比，采用Van-Leer坡度限制器，其余格式与WENO5一致。
+计算中采用10000单元WENO5的结果为参考解作为对照。
+不同网格的结果如下。
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=16cm]{SH_SUM0.png}  %需调整
+    \caption{不同网格Shu-Osher问题密度分布（本图每10个网格点有一个标记）}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=16cm]{SH_SUM1.png}  %需调整
+    \caption{不同网格Shu-Osher问题密度分布，光滑区（本图每10个网格点有一个标记）}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=16cm]{SH_SUM2.png}  %需调整
+    \caption{不同网格Shu-Osher问题密度分布，激波（本图每1个网格点有一个标记）}
+\end{figure}
+
+不同区域中，5000网格时与参考解差距都很小。
+在800网格时，WENO5在光滑区已经给出了可以接受的解，
+而TVD的峰值明显不足。在200、400网格上，TVD对光滑区抹平很严重，
+而WENO5保持了较多的非单调性。N=400时WENO5的波形已经基本与参考解有相同趋势。
+
+激波附近，TVD与WENO5的表现类似，都有效抑制了振荡。
+
+总体而言，WENO5在间断附近有较好的单调性，没有明显数值振荡；
+在光滑区的精度明显好于TVD格式，推测其有较好色散耗散特性。
+WENO5在Shu-Osher问题中可通过较少的网格达到很高的计算精度。
+
+
+
+\bibliography{refs}{}
+\bibliographystyle{unsrt}
+
+
+\section*{附录}
+
+本文使用的计算代码都在
+\href{https://github.com/harryzhou2000/HW_ACFD}{Github的Git Repo（点击前往）}。
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+% \section{SECTION 节}
+
+% 一个
+
+% \subsection{SUBSECTION 小节}
+
+% 示例
+
+% \subsubsection{SUBSUBSECTION 小节节}
+
+% 字体字号临时调整：
+% {
+%    \sffamily\bfseries\zihao{3} 哈哈哈哈哈 abcde %三号 sans系列字体（一开始设置的） 加粗
+%    %只对大括号范围内的后面的字有用，在标题、题注里面同样
+% }
+% { 
+%    \CJKfamily{kaiti}\zihao{5}\itshape 哈哈哈哈哈 abcde%三号 kaiti（一开始设置的, 斜体（英文有变）
+%    %只对大括号范围内的后面的字有用，在标题、题注里面同样
+% }
+
+% 一大堆一大堆一大堆一大堆一大堆一大堆一大堆一大堆一大堆一大堆
+% 一大堆一大堆一大堆一大堆一大堆一大堆一大堆一大堆一大堆一大堆一大堆一大堆
+% 一大堆一大堆一大堆一大堆一大堆一大堆一大堆一大堆一大堆一大堆一大堆一大堆
+% 一大堆一大堆一大堆一大堆一大堆一大堆一大堆一大堆一大堆一大堆一大堆一大堆
+
+% \begin{center}
+%     居中的什么乱七八糟东西
+% \end{center}
+
+
+% 一个列表：
+% \begin{itemize}
+%     \item asef
+%     \item[\%] asdf
+%     \item[\#] aaa
+% \end{itemize}
+
+% 一个有序列表：
+% \begin{enumerate}
+%     \item asef
+%     \item[\%\%] asdf
+%     \item aaa
+% \end{enumerate}
+
+% 一个嵌套列表，考虑缩进：
+% \begin{enumerate}[itemindent=2em] %缩进
+%     \item asef \par asaf 东西东西东西东西东西东西东西东西东西东西东西东西东西东西东西东西东西东西东西东西东西东西东西东西，
+%           F不是不是不是不是不是不是不是不是不是不是不是不是不是不是不是
+%           \begin{itemize}[itemindent=2em]  %缩进
+%               \item lalala
+%               \item mamama
+%           \end{itemize}
+%     \item asdf
+%     \item aaa
+% \end{enumerate}
+
+% \section{SECTION}
+
+% 图片排版：
+
+% \begin{figure}[H]
+%     \begin{minipage}[c]{0.45\linewidth}  %需调整
+%         \centering
+%         \includegraphics[width=8cm]{RAM_O2_4660.png}  %需调整
+%         \caption{第一个图}
+%         \label{fig:a}
+%     \end{minipage}
+%     \hfill %弹性长度
+%     \begin{minipage}[c]{0.45\linewidth}  %需调整
+%         \centering
+%         \includegraphics[width=8cm]{RAM_O4_4660.png}  %需调整
+%         \caption{第二个图}
+%         \label{fig:b}
+%     \end{minipage}
+% \end{figure}
+
+% figure的选项为“htbp”时，会自动浮动，是“H”则和文字顺序严格一些。
+
+% \begin{figure}[H]
+%     \begin{minipage}[c]{0.45\linewidth}  %需调整
+%         \centering
+%         \includegraphics[width=8cm]{RAM_O2_4660.png}  %需调整
+%         \label{fig:x}
+%     \end{minipage}
+%     \hfill %弹性长度
+%     \begin{minipage}[c]{0.45\linewidth}  %需调整
+%         \centering
+%         \includegraphics[width=8cm]{RAM_O4_4660.png}  %需调整
+%         \label{fig:y}
+%     \end{minipage}
+%     \caption{第三个图}
+% \end{figure}
+
+% \begin{figure}[H]
+%     \centering
+%     \includegraphics[width=8cm]{RAM_O4_4660.png}  %需调整
+%     \label{fig:c}
+%     \caption{第四个图}
+% \end{figure}
+
+
+
+% \subsection{SUBSECTION}
+
+% 关于怎么搞表格：
+
+% \begin{table*}[htbp]
+%     \footnotesize
+%     \begin{center}
+%         \caption{一端力矩载荷下的结果\fontsize{0pt}{2em}} %需要学习统一设置；0代表不变？
+%         \label{表2}
+%         \begin{tabular}{|c|c|c|c|c|c|c|}
+%             \hline
+%             节点数                              & 积分方案              & 单元数                & $h=1m$                & $h=0.1m$              & $h=0.05m$             & $h=0.01m$             \\
+%             \hline
+%             \multirow{6}{*}{2}                  & \multirow{3}{*}{精确} & 1                     & 4.235294117647059E-08 & 1.406250000000000E-06 & 2.862823061630218E-06 & 1.439654482924097E-05 \\
+%             \cline{3-7}
+%                                                 &                       & 10                    & 5.975103734439814E-08 & 4.235294117646719E-05 & 1.800000000000410E-04 & 1.406249999999849E-03 \\
+%             \cline{3-7}
+%                                                 &                       &
+%             10000                               & 5.999999915514277E-08 & 5.999996622448291E-05 & 4.799989509752562E-04 & 5.999793702477535E-02                                                 \\
+%             \cline{2-7}
+%                                                 & \multirow{3}{*}{减缩} & 1                     & 6.000000000000001E-08 & 5.999999999999972E-05 & 4.799999999999911E-04 & 6.000000000003492E-02 \\
+%             \cline{3-7}
+%                                                 &                       & 10                    & 6.000000000000071E-08 & 5.999999999999142E-05 & 4.799999999995399E-04 & 5.999999999903294E-02 \\
+%             \cline{3-7}
+%                                                 &                       & 10000                 & 6.000000112649221E-08 & 5.999999234537814E-05 & 4.799997501925065E-04 & 6.000037607984510E-02 \\
+%             \hline
+
+%             \multirow{6}{*}{3}                  & \multirow{3}{*}{精确} & 1                     & 6.000000000000003E-08 & 6.000000000000202E-05 & 4.800000000000831E-04 & 6.000000000056749E-02 \\
+%             \cline{3-7}
+%                                                 &                       & 10                    & 5.999999999999932E-08 & 6.000000000004190E-05 & 4.800000000000206E-04 & 6.000000001613761E-02 \\
+%             \cline{3-7}
+%                                                 &                       & 10000                 & 6.000000013769874E-08 & 5.999989495410481E-05 & 4.799942099727246E-04 & 6.000263852944890E-02 \\
+%             \cline{2-7}
+%                                                 & \multirow{3}{*}{减缩} & 1                     & 6.000000000000002E-08 & 6.000000000000267E-05 & 4.800000000000754E-04 & 5.999999999989982E-02 \\
+%             \cline{3-7}
+%                                                 &                       & 10                    & 5.999999999999899E-08 & 5.999999999987338E-05 & 4.799999999947916E-04 & 5.999999998625345E-02 \\
+%             \cline{3-7}
+%                                                 &                       & 10000                 & 5.999999728157785E-08 & 5.999994914321980E-05 & 4.800008377474699E-04 & 5.999472246346305E-02 \\
+%             \hline
+
+%             \multicolumn{3}{|c|}{欧拉-伯努利解} & 6.000000000000000E-08 & 6.000000000000000E-05 & 4.800000000000000E-04 & 6.000000000000000E-02                                                 \\
+%             \hline
+%         \end{tabular}
+%     \end{center}
+% \end{table*}
+
+% 多行、多列表格的示例，基本思想是，多列的那个东西放在多列的最上面一格，下面的行要用\&来空开，也就是\&的数目
+% 和普通表格一样，是列数减一；
+% 多列的部分的话，就是每行内的操作，相应的\&就少了，见最后一行。
+
+% tabular的“|c|c|c|c|c|c|c|”，意思是，竖线-居中-竖线-居中-竖线……，可以选择省略一些竖线；
+% 每行之间的hline，代表贯通的横线，cline是有范围的横线。
+
+% \subsubsection{SUBSUBSECTION}
+
+% newcommand可以用来定义新指令，似乎基本上就是字符串替换……不太懂，总之在公式里面可以用，
+% 外面也经常用。
+
+
+
+
+
+
+% 公式这么写：
+% \begin{equation}
+%     \begin{aligned}
+%         \frac{aa(x^1+x^2)}{\sqrt{x^1x^2}}
+%         \nabla\times\uu
+%         = & u_{j;m}\g^m\times\g^j
+%         =u_{j;m}\epsilon^{mjk}\g_k
+%         =u_{j,m}\epsilon^{mjk}\g_k                           \\
+%         = & \frac{1}{\sqrt{g}}\left|
+%         \begin{matrix}
+%             \g_1       & \g_2       & \g_3       \\
+%             \partial_1 & \partial_2 & \partial_3 \\
+%             u_1        & u_2        & u_3
+%         \end{matrix}
+%         \right|
+%         =\frac{\sqrt{x^1x^2}}{aa(x^1+x^2)}
+%         \left|
+%         \begin{matrix}
+%             \g_1                        & \g_2                        & \g_3       \\
+%             \partial_1                  & \partial_2                  & \partial_3 \\
+%             u^1\frac{a^2(x^1+x^2)}{x^1} & u^2\frac{a^2(x^1+x^2)}{x^2} & u^3
+%         \end{matrix}
+%         \right|                                              \\
+%         = & \frac{\sqrt{x^1x^2}}{aa(x^1+x^2)}
+%         [[\g_1\,\g_2\,\g_3]]
+%         diag\left(
+%         u^3_{,2}-u^2_{,3}\frac{a^2(x^1+x^2)}{x^2},\,
+%         u^1_{,3}\frac{a^2(x^1+x^2)}{x^1}-u^3_{,1},\, \right. \\
+%           & \left.
+%         u^2_{,1}\frac{a^2(x^1+x^2)}{x^2}+u^2\frac{a^2}{x^2}
+%         -
+%         u^1_{,2}\frac{a^2(x^1+x^2)}{x^1}-u^1\frac{a^2}{x^1}
+%         \right)                                              \\
+%         = & \frac{\sqrt{x^1x^2}}{aa(x^1+x^2)}
+%         [[\bm{e}_1\,\bm{e}_2\,\bm{e}_3]]
+%         \left[\begin{array}{ccc} a & -a & 0\\ \frac{a\,x^{2}}{\sqrt{x^{1}\,x^{2}}} & \frac{a\,x^{1}}{\sqrt{x^{1}\,x^{2}}} & 0\\ 0 & 0 & 1 \end{array}\right]              \\
+%           & diag\left(
+%         u^3_{,2}-u^2_{,3}\frac{a^2(x^1+x^2)}{x^2},\,
+%         u^1_{,3}\frac{a^2(x^1+x^2)}{x^1}-u^3_{,1},\, \right. \\
+%           & \left.
+%         u^2_{,1}\frac{a^2(x^1+x^2)}{x^2}+u^2\frac{a^2}{x^2}
+%         -
+%         u^1_{,2}\frac{a^2(x^1+x^2)}{x^1}-u^1\frac{a^2}{x^1}
+%         \right)
+%     \end{aligned}
+%     \label{eq:curlu}
+% \end{equation}
+
+% 如果不想带编号的公式（或者图表），用 equation* 这种环境。
+
+% 引用，如果是引用的图表，就用表\ref{表2}，图\ref{fig:a}这种，代码里是用label定义的标签来引用，
+% 编号是自动生成的。公式引用一般写成：\eqref{eq:curlu}。目前这些引用自动会有超链接，反正有那个包自动
+% 好像就会有……呜呜呜也不知道是怎么做到的，先这么用吧。
+
+% \paragraph{PARA}
+
+% 引用文献用\\cite这些，要用bibtex，暂时不做。
+
+% \subparagraph{SUBPARA}
+
+\end{document}

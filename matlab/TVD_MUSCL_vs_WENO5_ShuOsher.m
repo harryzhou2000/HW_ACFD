@@ -1,11 +1,14 @@
 pnum = 0;
 
 NRef = 10000;
+%  [rhoR,veloR,pR,name,xc] = getShuOsher(NRef,2);
+%  save('ShuOsherRefA.mat','rhoR','veloR','pR');
+%%
 
 RefSH = load('ShuOsherRefA.mat');
 Refx = linspace(0 + 0.5/numel(RefSH.pR), 10 - 0.5/numel(RefSH.pR), numel(RefSH.pR));
-
-Ns = [200,400,800,5000];
+%%
+Ns = [200, 400, 800, 5000];
 
 rhos = {};
 velos = {};
@@ -39,20 +42,27 @@ lineStyles = {'.-','.-','r'};
 
 
 figure(5); clf; set(gca, 'FontName', 'Times New Roman');
-set(gcf,'Position',[100,100,1200,700]);
+set(gcf,'Position',[100,100,1000,500]);
 
-t = tiledlayout(2,2,'TileSpacing','Compact' );
+% t = tiledlayout(2,2,'TileSpacing','Compact' );
+
 
 % title(t, sprintf("Problem %d, t=%.4g, N=%d", pnum, tMax, N));
 
 for i = 1:numel(Ns)
 
-nexttile; hold on; set(gca, 'FontName', 'Times New Roman');
+% nexttile;
+subplot(2,2,i);
+hold on; set(gca, 'FontName', 'Times New Roman');
+
 title(sprintf('N = %d', Ns(i)));
 plot(Refx, RefSH.rhoR,'DisplayName', 'Reference');
-plot(xcs{i},  rhos{i}, '.-', 'DisplayName', 'TVD');
-plot(xcs{i + numel(Ns)},  rhos{i + numel(Ns)}, 'x-', 'DisplayName', 'TVD');
-
+plot(xcs{i},  rhos{i}, '.-', 'DisplayName', 'TVD',...
+    'MarkerIndices',1:10:numel(xcs{i}));
+plot(xcs{i + numel(Ns)},  rhos{i + numel(Ns)}, 'x-', 'DisplayName', 'WENO5',...
+    'MarkerIndices',1:10:numel(xcs{i}));
+L = legend();
+L.Location = 'best';
 
 xlabel('x');
 ylabel('\rho');
@@ -63,19 +73,23 @@ print(gcf,sprintf("SH_SUM0.png"),'-dpng','-r300')
 
 %%
 figure(6); clf; set(gca, 'FontName', 'Times New Roman');
-set(gcf,'Position',[100,100,1200,700]);
+set(gcf,'Position',[100,100,1000,500]);
 
-t = tiledlayout(2,2,'TileSpacing','Compact' );
+% t = tiledlayout(2,2,'TileSpacing','Compact' );
 
 % title(t, sprintf("Problem %d, t=%.4g, N=%d", pnum, tMax, N));
 
 for i = 1:numel(Ns)
 
-nexttile; hold on; set(gca, 'FontName', 'Times New Roman');
+% nexttile;
+subplot(2,2,i);
+hold on; set(gca, 'FontName', 'Times New Roman');
 title(sprintf('N = %d', Ns(i)));
 plot(Refx, RefSH.rhoR,'DisplayName', 'Reference');
-plot(xcs{i},  rhos{i}, '.-', 'DisplayName', 'TVD');
-plot(xcs{i + numel(Ns)},  rhos{i + numel(Ns)}, 'x-', 'DisplayName', 'WENO5');
+plot(xcs{i},  rhos{i}, '.-', 'DisplayName', 'TVD',...
+    'MarkerIndices',1:10:numel(xcs{i}));
+plot(xcs{i + numel(Ns)},  rhos{i + numel(Ns)}, 'x-', 'DisplayName', 'WENO5',...
+    'MarkerIndices',1:10:numel(xcs{i}));
 L = legend();
 L.Location = 'best';
 xlim([5,7.5]);
@@ -90,15 +104,17 @@ print(gcf,sprintf("SH_SUM1.png"),'-dpng','-r300')
 
 %%
 figure(7); clf; set(gca, 'FontName', 'Times New Roman');
-set(gcf,'Position',[100,100,1200,700]);
+set(gcf,'Position',[100,100,1000,500]);
 
-t = tiledlayout(2,2,'TileSpacing','Compact' );
+% t = tiledlayout(2,2,'TileSpacing','Compact' );
 
 % title(t, sprintf("Problem %d, t=%.4g, N=%d", pnum, tMax, N));
 
 for i = 1:numel(Ns)
 
-nexttile; hold on; set(gca, 'FontName', 'Times New Roman');
+% nexttile;
+subplot(2,2,i);
+hold on; set(gca, 'FontName', 'Times New Roman');
 title(sprintf('N = %d', Ns(i)));
 plot(Refx, RefSH.rhoR,'DisplayName', 'Reference');
 plot(xcs{i},  rhos{i}, '.-', 'DisplayName', 'TVD');
@@ -122,7 +138,7 @@ print(gcf,sprintf("SH_SUM2.png"),'-dpng','-r300')
 function [rho,velo,p,name,xc] = getShuOsher(N, O2damp)
 
 
-ARSType = 3;
+ARSType = 1;
 ARSFix = 0;
 if ARSType == 1
     if ARSFix == 0
@@ -268,20 +284,25 @@ if O2damp <= 1
     uL = u - UX.*hs * 0.5;
     uR = u + UX.*hs * 0.5;
 else
-    shape0 = size(u);
-    [uL,uR] = F_interpi_weno5(permute(reshape(u,shape0(1),1,shape0(2)),[3,2,1]), 1e-6,2,0);
-    uL = reshape(permute(uL,[3,2,1]),shape0);
-    uR = reshape(permute(uR,[3,2,1]),shape0);
-    
+    if(ARSType ~= 1)
+        shape0 = size(u);
+        [uL,uR] = F_interpi_weno5(permute(reshape(u,shape0(1),1,shape0(2)),[3,2,1]), 1e-7,2,1);
+        uL = reshape(permute(uL,[3,2,1]),shape0);
+        uR = reshape(permute(uR,[3,2,1]),shape0);
+    end
 end
 
 
 
-FL = EulerFluxARS(uR(:,ileft),uL,gamma,1,ARSType, ARSFix);
+
+if ARSType == 1 && O2damp > 1
+    FL = EulerFluxFDi(u(:,ileft), u, gamma, 1, ARSFix);
+else
+    FL = EulerFluxARS(uR(:,ileft),uL,gamma,1,ARSType, ARSFix);
+end
+
 dudt = (FL - FL(:,iright)) ./ hs;
 dudt(:,1:2) = 0;
 dudt(:,end-1:end) = 0;
 
 end
-
-
